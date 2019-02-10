@@ -25,7 +25,7 @@ SECRET_KEY = '_mn_k-9nv8o*-6p9%c)4dqmnyn7yxt_pk$0b!j4xije@!j0nh+'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['stock-simulate.herokuapp.com']
 
 
 # Application definition
