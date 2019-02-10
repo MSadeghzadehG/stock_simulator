@@ -101,7 +101,7 @@ def update(request):
     r = requests.get('http://www.tsetmc.com/tsev2/data/MarketWatchInit.aspx?h=0&r=0')
    
     # headers = ['id','?','namad','nam','?','avalin','payani','akharin moamele','tedad moamelat','hajm moamelat','arzesh mamelat','baze rooz kam','baze rooz ziad','dirooz','eps','?','?','?','?','mojaz ziad','mojaz kam','?','?']
-    # print(len(r.text.split('@')[2].split(';')[0].split(',')))
+    print((r.text.split('@')[2].split(';')[0].split(',')))
     print(len(Stock.objects.all()))
     stocks_list = r.text.split('@')[2].split(';')
     for i in stocks_list:
