@@ -109,7 +109,7 @@ def update(request):
         # print(i.split(',')[:23])
         seprated = i.split(',')[:23]
         print(seprated)
-        new_entry = Stock(*seprated)
+        new_entry = Stock(seprated[0],*seprated)
         # sleep(1)
         try:
             found = Stock.objects.get(tmc_id = seprated[0])
