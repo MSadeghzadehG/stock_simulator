@@ -5,8 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core import serializers
 from django.template import loader
 from datetime import datetime
-import requests,os,csv
-import numpy as np
+import os,csv
 from django import forms
 
 

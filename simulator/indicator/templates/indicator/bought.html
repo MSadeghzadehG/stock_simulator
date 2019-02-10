@@ -52,7 +52,7 @@
                                 {%for stock in stocks%}
                                     <tr>
                                         <th>
-                                            <form action="/indicator/stocks/{{stock.fields.stock}}/" method="POST">
+                                            <form action="/stocks/{{stock.fields.stock}}/" method="POST">
                                                 {% csrf_token %}                                                      
                                                 <input type="submit" value="Stock History">
                                             </form>

@@ -54,19 +54,19 @@
                                 {%for indicator in indicators%}
                                     <tr>
                                         <th>
-                                            <form action="/indicator/indicators/{{indicator.fields.name}}/" method="POST">
+                                            <form action="/indicators/{{indicator.fields.name}}/" method="POST">
                                                 {% csrf_token %}                                                      
                                                 <input type="submit" value="Stocks list">
                                             </form>
                                         </th>
                                         <th>
-                                            <form action="/indicator/indicators/{{indicator.fields.name}}/delete" method="POST">
+                                            <form action="/indicators/{{indicator.fields.name}}/delete" method="POST">
                                                 {% csrf_token %}                                                      
                                                 <input type="submit" value="delete">
                                             </form>
                                         </th>
                                         <th>
-                                            <form action="/indicator/indicators/{{indicator.fields.name}}/update" method="POST">
+                                            <form action="/indicators/{{indicator.fields.name}}/update" method="POST">
                                                 {% csrf_token %}                                                      
                                                 <input type="submit" value="update">
                                             </form>
