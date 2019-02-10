@@ -103,7 +103,7 @@ def update(request):
     # headers = ['id','?','namad','nam','?','avalin','payani','akharin moamele','tedad moamelat','hajm moamelat','arzesh mamelat','baze rooz kam','baze rooz ziad','dirooz','eps','?','?','?','?','mojaz ziad','mojaz kam','?','?']
     # print(len(r.text.split('@')[2].split(';')))
     # print(len(Stock.objects.all()))
-    # stocks_list = r.text.split('@')[2].split(';')
+    stocks_list = r.text.split('@')[2].split(';')
     # print(stocks_list)
     for i in stocks_list:
         # print(i.split(',')[:23])
