@@ -64,7 +64,7 @@ def add_indicator(request):
     if form.is_valid():
         new_indicator = Indicator(name=form.cleaned_data['name'],algorithm=form.cleaned_data['algorithm'])
         new_indicator.save()
-    return redirect('indicator/')
+    return redirect('')
 
     
 
@@ -75,13 +75,13 @@ def delete_indicator(request,name):
     indicator.mydelete()
     print(len(Indicator.objects.all()))
     print(len(Bought_stock.objects.all()))
-    return redirect('/indicator/indicators')
+    return redirect('indicators')
 
 def update_indicator(request,name):
     indicator = Indicator.objects.all().get(name=name)
     print(indicator)
     indicator.update()
-    return redirect('/indicator/indicators')
+    return redirect('indicators')
 
 
 def delete_database(request):
@@ -140,18 +140,17 @@ def update(request):
             # print(seprated[1])
             try:
                 found = Record.objects.get(stock = i, date = seprated[1])
-                for attr, value in found.__dict__.items():
-                    print(attr, value)
+                print('found'+str(found))
+                # for attr, value in found.__dict__.items():
+                #     print(attr, value)
                 # input()
                 break
                 # print('here')
             except ObjectDoesNotExist:
                 new_entry = Record.create(i,*seprated)
-                # print(new_entry)
                 new_entry.save()
-                for attr, value in new_entry.__dict__.items():
-                    print(attr, value)
-                input()
+                print('new'+str(new_entry))
+
         # print(len(Record.objects.all()))
         print(list(all_stock).index(i),i)
-    return HttpResponse('result')
+    return redirect('/stocks')
