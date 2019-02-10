@@ -7,6 +7,7 @@ from django.template import loader
 from datetime import datetime
 import os,csv
 from django import forms
+import requests
 
 
 class IndicatorForm(forms.Form):
