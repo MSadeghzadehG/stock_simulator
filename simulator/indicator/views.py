@@ -103,23 +103,23 @@ def update(request):
     # headers = ['id','?','namad','nam','?','avalin','payani','akharin moamele','tedad moamelat','hajm moamelat','arzesh mamelat','baze rooz kam','baze rooz ziad','dirooz','eps','?','?','?','?','mojaz ziad','mojaz kam','?','?']
     # print(len(r.text.split('@')[2].split(';')))
     # print(len(Stock.objects.all()))
-    stocks_list = r.text.split('@')[2].split(';')
-    # print(stocks_list)
-    for i in stocks_list:
-        # print(i.split(',')[:23])
-        seprated = i.split(',')[:23]
-        # print(seprated)
-        new_entry = Stock(stocks_list.index(i),*seprated)
-        # sleep(1)
-        try:
-            found = Stock.objects.get(tmc_id = seprated[0])
-            found.update(*seprated[1:])
-            print('found'+str(found))
-            found.save()
-        except ObjectDoesNotExist:
-            print('new'+str(new_entry))
-            new_entry.save()       
-    print(len(Stock.objects.all()))
+    # stocks_list = r.text.split('@')[2].split(';')
+    # # print(stocks_list)
+    # for i in stocks_list:
+    #     # print(i.split(',')[:23])
+    #     seprated = i.split(',')[:23]
+    #     # print(seprated)
+    #     new_entry = Stock(stocks_list.index(i),*seprated)
+    #     # sleep(1)
+    #     try:
+    #         found = Stock.objects.get(tmc_id = seprated[0])
+    #         found.update(*seprated[1:])
+    #         print('found'+str(found))
+    #         found.save()
+    #     except ObjectDoesNotExist:
+    #         print('new'+str(new_entry))
+    #         new_entry.save()       
+    # print(len(Stock.objects.all()))
     # print([field.name for field in Stock._meta.get_fields()])
 
     # pdf_headers = ['Ticker','date','first','high','low','close','value','vol','openint','per','open','last']
@@ -151,8 +151,8 @@ def update(request):
             except ObjectDoesNotExist:
                 new_entry = Record.create(i,*seprated)
                 new_entry.save()
-                # print('new'+str(new_entry))
+                print('new'+str(new_entry))
 
         # print(len(Record.objects.all()))
-        print(list(all_stock).index(i),i)
+        print(list(all_stock).index(i))
     return redirect('/stocks')
