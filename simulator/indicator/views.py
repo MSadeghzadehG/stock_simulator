@@ -112,7 +112,7 @@ def update(request):
         new_entry = Stock(seprated[0],*seprated)
         # sleep(1)
         try:
-            found = Stock.objects.get(tmc_id = seprated[0])
+            found = Stock.objects.get(namad = seprated[2])
             found.update(*seprated[1:])
             print('found'+str(found))
             found.save()
