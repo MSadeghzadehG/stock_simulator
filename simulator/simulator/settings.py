@@ -76,8 +76,12 @@ WSGI_APPLICATION = 'simulator.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'simulator',#os.environ.get('simulator',''),
+        'USER' : 'mahdi',#os.environ.get('mahdi',''),
+        'PASSWORD': 'mahdi',#os.environ.get('mahdi',''),
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 

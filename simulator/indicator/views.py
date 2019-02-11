@@ -108,22 +108,22 @@ def update(request):
     for i in stocks_list:
         # print(i.split(',')[:23])
         seprated = i.split(',')[:23]
-        print(seprated)
-        new_entry = Stock(seprated[0],*seprated)
+        # print(seprated)
+        new_entry = Stock(stocks_list.index(i),*seprated)
         # sleep(1)
         try:
-            found = Stock.objects.get(namad = seprated[2])
+            found = Stock.objects.get(tmc_id = seprated[0])
             found.update(*seprated[1:])
             print('found'+str(found))
             found.save()
-        except ObjectDoesNotExist or DoesNotExist:
+        except ObjectDoesNotExist:
             print('new'+str(new_entry))
             new_entry.save()       
     print(len(Stock.objects.all()))
     # print([field.name for field in Stock._meta.get_fields()])
 
     # pdf_headers = ['Ticker','date','first','high','low','close','value','vol','openint','per','open','last']
-    print([field.name for field in Record._meta.get_fields()])
+    # print([field.name for field in Record._meta.get_fields()])
     print(len(Record.objects.all()))
     all_stock = Stock.objects.all()
     for i in all_stock:
@@ -151,7 +151,7 @@ def update(request):
             except ObjectDoesNotExist:
                 new_entry = Record.create(i,*seprated)
                 new_entry.save()
-                print('new'+str(new_entry))
+                # print('new'+str(new_entry))
 
         # print(len(Record.objects.all()))
         print(list(all_stock).index(i),i)
