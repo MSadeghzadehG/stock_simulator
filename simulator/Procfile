@@ -1,2 +1,2 @@
-web: gunicorn myproject.wsgi --log-file - --log-level critical
+web: gunicorn myproject.wsgi --log-file -
 
