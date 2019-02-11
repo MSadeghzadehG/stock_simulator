@@ -116,7 +116,7 @@ def update(request):
             found.update(*seprated[1:])
             print('found'+str(found))
             found.save()
-        except ObjectDoesNotExist:
+        except ObjectDoesNotExist or DoesNotExist:
             print('new'+str(new_entry))
             new_entry.save()       
     print(len(Stock.objects.all()))
