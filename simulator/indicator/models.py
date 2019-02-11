@@ -82,7 +82,7 @@ class Record(models.Model):
 
     @classmethod
     def create(self,*l):
-        print(l)
+        # print(l)
         return Record(stock=l[0],
             Ticker= l[1],
             date = l[2],
