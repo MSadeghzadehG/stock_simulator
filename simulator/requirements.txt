@@ -2,3 +2,4 @@ django
 gunicorn
 django-heroku
 requests
+psycopg2-binary
