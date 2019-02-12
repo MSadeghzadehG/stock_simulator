@@ -25,7 +25,7 @@ SECRET_KEY = '_mn_k-9nv8o*-6p9%c)4dqmnyn7yxt_pk$0b!j4xije@!j0nh+'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['stock-simulate.herokuapp.com']
+ALLOWED_HOSTS = ['localhost','stock-simulate.herokuapp.com']
 
 
 # Application definition
@@ -126,6 +126,3 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = '/static/'
-
-import django_heroku
-django_heroku.settings(locals())
