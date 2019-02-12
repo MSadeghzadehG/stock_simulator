@@ -15,6 +15,41 @@ class IndicatorForm(forms.Form):
     name = forms.CharField(max_length=100)
     algorithm = forms.CharField(max_length=200)
 
+
+class EmailForm(forms.Form):
+    firstname = forms.CharField(max_length=255)
+    lastname = forms.CharField(max_length=255)
+    email = forms.EmailField()
+    subject = forms.CharField(max_length=255)
+    botcheck = forms.CharField(max_length=5)
+    message = forms.CharField()
+
+
+# from django.core.mail import send_mail, BadHeaderError
+# def sendmail(request):
+#     if request.method == 'POST':
+#         form = EmailForm(request.POST)
+#         if form.is_valid():
+#             firstname = form.cleaned_data['firstname']
+#             lastname = form.cleaned_data['lastname']
+#             email = form.cleaned_data['email']
+#             subject = form.cleaned_data['subject']
+#             botcheck = form.cleaned_data['botcheck'].lower()
+#             message = form.cleaned_data['message']
+#             if botcheck == 'yes':
+#                 try:
+#                     fullemail = firstname + " " + lastname + " " + "<" + email + ">"
+#                     send_mail(subject, message, fullemail, ['SENDTOUSER@DOMAIN.COM'])
+#                     return HttpResponseRedirect('/email/thankyou/')
+#                 except:
+#                     return HttpResponseRedirect('/email/')
+#         else:
+#             return HttpResponseRedirect('/email/')
+#     else:
+#         return HttpResponseRedirect('/email/')  
+
+
+
 @background(schedule=5)
 def update_indicators(indicators):
     for indicator in indicators:

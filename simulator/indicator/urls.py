@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from .views import IndicatorForm
+from django.conf.urls import patterns, url, include
 
 
 urlpatterns = [
@@ -13,6 +14,7 @@ urlpatterns = [
     path('indicators/<name>/', views.boughts_table, name='show_indicator'),
     path('indicators/<name>/delete', views.delete_indicator, name='delete_indicator'),
     path('indicators/<name>/update', views.update_indicator, name='update_indicator'),
-    # path('indicator/add/<name>/<algorithm>', views.add_indicator, name='add_indicator'),
     path('add_indicator/', views.add_indicator, name='add_indicator'),
+    # url(r'^email/send/$', views.sendmail),
+
 ]
