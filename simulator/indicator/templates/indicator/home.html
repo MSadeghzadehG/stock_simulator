@@ -15,7 +15,7 @@
         <div class="row table-responsive" >
             <div class="col-md-12">
                 <h3>Add Indicator</h3>        
-                <form action="/indicator/add_indicator/" method="post">
+                <form action="/add_indicator/" method="post">
                     {% csrf_token %}
                     {{ form.as_ul }}
                     <input type="submit" value="Add">

@@ -5,17 +5,27 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core import serializers
 from django.template import loader
 from datetime import datetime
-import os,csv
+import os,datetime
 from django import forms
 import requests
+from background_task import background
 
 
 class IndicatorForm(forms.Form):
     name = forms.CharField(max_length=100)
     algorithm = forms.CharField(max_length=200)
 
+@background(schedule=5)
+def update_indicators(indicators):
+    for indicator in indicators:
+        indicator.update()
+    print('updated')
+    print(datetime.datetime.now())
+
+
 def home(request):
     form = IndicatorForm(auto_id=False)
+
     template = loader.get_template('indicator/home.html')
     context = { 'form' : form }
     return HttpResponse(template.render(context, request))
@@ -47,10 +57,7 @@ def boughts_table(request,name):
 def indicators_table(request):
     print(len(Indicator.objects.all()))
     indicators = Indicator.objects.all()
-    for indicator in indicators:
-        indicator.update()
-
-
+    update_indicators(serializers.serialize("python",indicators),repeat=5,repeat_until=None)
     template = loader.get_template('indicator/indicators.html')
     context = { 'indicators': serializers.serialize("python",indicators) , 'headers':[field.name for field in Indicator._meta.get_fields()][1:-1]}
     return HttpResponse(template.render(context, request))
@@ -64,9 +71,7 @@ def add_indicator(request):
     if form.is_valid():
         new_indicator = Indicator(name=form.cleaned_data['name'],algorithm=form.cleaned_data['algorithm'])
         new_indicator.save()
-    return redirect('')
-
-    
+    return redirect('/indicators')
 
 
 def delete_indicator(request,name):
@@ -75,13 +80,14 @@ def delete_indicator(request,name):
     indicator.mydelete()
     print(len(Indicator.objects.all()))
     print(len(Bought_stock.objects.all()))
-    return redirect('indicators')
+    return redirect('/indicators')
+
 
 def update_indicator(request,name):
     indicator = Indicator.objects.all().get(name=name)
     print(indicator)
-    indicator.update()
-    return redirect('indicators')
+    # indicator.update()
+    return redirect('/indicators')
 
 
 def delete_database(request):
@@ -98,8 +104,9 @@ def delete_database(request):
 
 def update(request):
     get_data_url = 'http://tsetmc.ir/tsev2/data/Export-txt.aspx?t=i&a=1&b=0&i='
+    get_data_url2 = 'http://members.tsetmc.com/tsev2/data/InstTradeHistory.aspx?i='
+    get_data_url3 = '&Top=999999&A=0'
     r = requests.get('http://www.tsetmc.com/tsev2/data/MarketWatchInit.aspx?h=0&r=0')
-   
     # headers = ['id','?','namad','nam','?','avalin','payani','akharin moamele','tedad moamelat','hajm moamelat','arzesh mamelat','baze rooz kam','baze rooz ziad','dirooz','eps','?','?','?','?','mojaz ziad','mojaz kam','?','?']
     # print(len(r.text.split('@')[2].split(';')))
     # print(len(Stock.objects.all()))
@@ -109,11 +116,12 @@ def update(request):
     #     # print(i.split(',')[:23])
     #     seprated = i.split(',')[:23]
     #     # print(seprated)
-    #     new_entry = Stock(stocks_list.index(i),*seprated)
     #     # sleep(1)
+    #     new_entry = Stock(seprated[0],*seprated)
     #     try:
     #         found = Stock.objects.get(tmc_id = seprated[0])
     #         found.update(*seprated[1:])
+    #         # found.save(id=seprated[0])
     #         print('found'+str(found))
     #         found.save()
     #     except ObjectDoesNotExist:
@@ -121,15 +129,23 @@ def update(request):
     #         new_entry.save()       
     # print(len(Stock.objects.all()))
     # print([field.name for field in Stock._meta.get_fields()])
-
     # pdf_headers = ['Ticker','date','first','high','low','close','value','vol','openint','per','open','last']
     # print([field.name for field in Record._meta.get_fields()])
     print(len(Record.objects.all()))
     all_stock = Stock.objects.all()
     for i in all_stock:
         # print(i)
+        check = False
         r = requests.get(get_data_url+i.getID())
-        # print(request.text)
+        while r.status_code==500:
+            if check:
+                # r = requests.get(get_data_url2+i.getID()+get_data_url3)
+                r = requests.get(get_data_url+i.getID())
+                check = False
+            else:
+                r = requests.get(get_data_url+i.getID())
+                check = True
+        # print(r.text)
         rr = r.text.split('\r\n')
         # print(rr)
         if len(rr)>0:
@@ -152,7 +168,6 @@ def update(request):
                 new_entry = Record.create(i,*seprated)
                 new_entry.save()
                 print('new'+str(new_entry))
-
         # print(len(Record.objects.all()))
         print(list(all_stock).index(i))
     return redirect('/stocks')

@@ -1,5 +1,4 @@
 django
-gunicorn
-django-heroku
+django-background-tasks
 requests
 psycopg2-binary

@@ -3,6 +3,7 @@ from datetime import datetime
 # Create your models here.
 
 class Stock(models.Model):
+    # id = models.BigIntegerField(unique=True, primary_key=True)
     tmc_id = models.CharField(max_length=300,unique=True)
     q1 = models.CharField(max_length=300)    
     namad = models.CharField(max_length=300)
@@ -28,6 +29,7 @@ class Stock(models.Model):
     q8 = models.CharField(max_length=300)
 
     def update(self,*l):
+        # self.id=l[22]
         self.q1=l[0]
         self.namad = l[1]
         self.nam = l[2]
@@ -162,26 +164,27 @@ class Indicator(models.Model):
             #     print('e')
             #     pass
         return suggusted
-
+    
     def update(self):
         self.update_profit()
         # self.algorithm = 'mean_of_last_days([10])'
         # self.save()
         suggusted = eval('self.'+self.algorithm)
-        print(suggusted)
+        # print(suggusted)
         for bought in self.bought.all():
             if not bought.stock.tmc_id in suggusted:
                 bought.mydelete()
         for id in suggusted:
             print(list(self.bought.all().values_list('stock', flat=True)))
             print(id)
+            input()
             if int(id) not in list(self.bought.all().values_list('stock', flat=True)):
                 stock = Stock.objects.get(tmc_id=id)
                 bought_stock =  Bought_stock(stock=stock,price=stock.akharin_moamele)
                 # print(bought_stock)
                 bought_stock.save()
                 self.bought.add(bought_stock)
-        print(self.bought.all())
+        # print(self.bought.all())
         self.last_update = datetime.now()
 
 
