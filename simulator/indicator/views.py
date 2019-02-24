@@ -14,6 +14,7 @@ from background_task import background
 class IndicatorForm(forms.Form):
     name = forms.CharField(max_length=100)
     algorithm = forms.CharField(max_length=200)
+    days = forms.CheckboxInput()
 
 
 class EmailForm(forms.Form):
@@ -60,9 +61,9 @@ def update_indicators(indicators):
 
 def home(request):
     form = IndicatorForm(auto_id=False)
-
     template = loader.get_template('indicator/home.html')
     context = { 'form' : form }
+    Indicator.mfi(3,4,20190206)
     return HttpResponse(template.render(context, request))
 
 

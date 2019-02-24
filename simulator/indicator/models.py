@@ -1,6 +1,6 @@
 from django.db import models
 from datetime import datetime
-# Create your models here.
+
 
 class Stock(models.Model):
     # id = models.BigIntegerField(unique=True, primary_key=True)
@@ -117,6 +117,7 @@ class Bought_stock(models.Model):
         return self.stock.__str__() + ' - ' + str(self.profit)
         # return str(self.pk)
 
+
 class Indicator(models.Model):
     bought = models.ManyToManyField(Bought_stock)
     name = models.CharField(max_length=300,unique = True)
@@ -164,7 +165,49 @@ class Indicator(models.Model):
             #     print('e')
             #     pass
         return suggusted
-    
+
+
+    def mfi(self,x,today):
+        # print(x)
+        suggusted = []
+        for stock in Stock.objects.all():
+            MFI=0
+            shakhes = 0
+            stock_records= Record.objects.filter(stock=stock).order_by('date')
+            days = stock_records.values_list('date',flat=True).reverse()
+            today_index = 0
+            if days.exists():
+                check = True
+                stock_day = today
+                days = list(map(int, days))
+                while check and stock_day>days[-1]:
+                    if stock_day in days:
+                        today_index = days.index((stock_day))
+                        check = False
+                    else:
+                        # print('bad day')
+                        stock_day -= 1
+                # print(today_index)
+                # input()
+                # print(stock)
+                try:
+                    temp = days[:today_index+x]
+                    if not check:
+                        print('halle')
+                        pass
+                    else:
+                        print('nashod')
+                except:
+                    print('e')
+                # input()
+            print(today_index)
+            # for i in range(x):
+                # now = stock_records.filter()
+            MFI = 1 - 1 /(1+shakhes)
+            if MFI>0.5:
+                suggusted.append(stock)
+        return suggusted
+
     def update(self):
         self.update_profit()
         # self.algorithm = 'mean_of_last_days([10])'
@@ -177,7 +220,6 @@ class Indicator(models.Model):
         for id in suggusted:
             print(list(self.bought.all().values_list('stock', flat=True)))
             print(id)
-            input()
             if int(id) not in list(self.bought.all().values_list('stock', flat=True)):
                 stock = Stock.objects.get(tmc_id=id)
                 bought_stock =  Bought_stock(stock=stock,price=stock.akharin_moamele)
@@ -186,7 +228,6 @@ class Indicator(models.Model):
                 self.bought.add(bought_stock)
         # print(self.bought.all())
         self.last_update = datetime.now()
-
 
     def update_profit(self):
         # self.profit = 0
@@ -204,3 +245,5 @@ class Indicator(models.Model):
 
     def __str__(self):
         return self.name
+
+
