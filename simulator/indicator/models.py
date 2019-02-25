@@ -294,6 +294,7 @@ class Indicator(models.Model):
         # print(x)
         suggusted = []
         for stock in Stock.objects.all():
+            to_use_records = []
             stock_records= Record.objects.filter(stock=stock).order_by('date')
             days = stock_records.values_list('date',flat=True).reverse()
             today_index = 0
@@ -308,33 +309,25 @@ class Indicator(models.Model):
                     else:
                         # print('bad day')
                         stock_day -= 1
-                # print(today_index)
                 # input()
                 # print(stock)
                 try:
-                    temp = days[:today_index+x]
+                    temp = days[today_index+7*x-1]
                     if not check:
                         # print(today_index)
-                        ks = []
-                        to_use_records = []
-                        l = float(stock_records.filter(date=str(days[today_index]))[0].low)
-                        h = float(stock_records.filter(date=str(days[today_index]))[0].high)
-                        for i in range(x):
+                        now = stock_records.filter(date=str(days[today_index]))[0]
+                        l = float(now.low)
+                        h = float(now.high)
+                        c = float(now.close)
+                        for i in range(7*x):
                             now = stock_records.filter(date=str(days[today_index]))[0]
                             to_use_records.append(now)
                             if float(now.high)>h:
                                 h = float(now.high)
                             if float(now.low)<l:
                                 l = float(now.low)
-                            today_index += 1                            
-                        for i in range(x):
-                            now = to_use_records[i]
-                            k = (float(now.close) - l) * 100 / (h-l)
-                            # print(dpp)
-                            ks.append(k)
-                            today_index += 1
-                        d = sum(ks[:3])/3                    
-                        if ks[0]>d:
+                            today_index += 1                                                
+                        if c>h:
                             print(stock)
                             suggusted.append(stock)
                     else:
