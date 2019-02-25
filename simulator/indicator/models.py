@@ -143,7 +143,6 @@ class Indicator(models.Model):
                 weighted_avg.append(0)
                 for i in range(0,len(to_check)):
                     # print((len(to_check)-i))
-                
                     weighted_avg[days.index(day)] += (len(to_check)-i)*to_check[i]
                     div += (len(to_check)-i)
                 weighted_avg[days.index(day)] /= div
@@ -171,8 +170,6 @@ class Indicator(models.Model):
         # print(x)
         suggusted = []
         for stock in Stock.objects.all():
-            MFI=0
-            shakhes = 0
             stock_records= Record.objects.filter(stock=stock).order_by('date')
             days = stock_records.values_list('date',flat=True).reverse()
             today_index = 0
@@ -193,20 +190,165 @@ class Indicator(models.Model):
                 try:
                     temp = days[:today_index+x]
                     if not check:
-                        print('halle')
-                        pass
+                        # print(today_index)
+                        dpps = []
+                        i_p = 0
+                        i_n = 0
+                        for i in range(x):
+                            now = stock_records.filter(date=str(days[today_index]))[0]
+                            # print(now.high)
+                            dpp = (float(now.high) + float(now.low) + float(now.close)) / 3 * float(now.vol)
+                            # print(dpp)
+                            dpps.append(dpp)
+                            today_index += 1
+                        for i in range(x-1):
+                            # print(dpps[i+1])
+                            # print(dpps[i])
+                            if dpps[i+1]>dpps[i]:
+                                i_p += dpps[i+1]
+                            else:
+                                i_n += dpps[i+1]
+                        # print(i_p)
+                        # print(i_n)
+                        # print()
+                        m_indicator = i_p / i_n
+                        MFI = 1 - 1 /(1+m_indicator)
+                        # print(MFI)
+                        if MFI>0.5:
+                            print(stock)
+                            suggusted.append(stock)
                     else:
                         print('nashod')
                 except:
                     print('e')
+                    # print(days)
+                    # print(today_index)
+                    # input()
                 # input()
-            print(today_index)
-            # for i in range(x):
-                # now = stock_records.filter()
-            MFI = 1 - 1 /(1+shakhes)
-            if MFI>0.5:
-                suggusted.append(stock)
+        print(suggusted)
+        print(len(suggusted))
         return suggusted
+
+
+    def stockastic(self,x,today):
+        # print(x)
+        suggusted = []
+        for stock in Stock.objects.all():
+            stock_records= Record.objects.filter(stock=stock).order_by('date')
+            days = stock_records.values_list('date',flat=True).reverse()
+            today_index = 0
+            if days.exists():
+                check = True
+                stock_day = today
+                days = list(map(int, days))
+                while check and stock_day>days[-1]:
+                    if stock_day in days:
+                        today_index = days.index((stock_day))
+                        check = False
+                    else:
+                        # print('bad day')
+                        stock_day -= 1
+                # print(today_index)
+                # input()
+                # print(stock)
+                try:
+                    temp = days[:today_index+x]
+                    if not check:
+                        # print(today_index)
+                        ks = []
+                        to_use_records = []
+                        l = float(stock_records.filter(date=str(days[today_index]))[0].low)
+                        h = float(stock_records.filter(date=str(days[today_index]))[0].high)
+                        for i in range(x):
+                            now = stock_records.filter(date=str(days[today_index]))[0]
+                            to_use_records.append(now)
+                            if float(now.high)>h:
+                                h = float(now.high)
+                            if float(now.low)<l:
+                                l = float(now.low)
+                            today_index += 1                            
+                        for i in range(x):
+                            now = to_use_records[i]
+                            k = (float(now.close) - l) * 100 / (h-l)
+                            # print(dpp)
+                            ks.append(k)
+                            today_index += 1
+                        d = sum(ks[:3])/3                    
+                        if ks[0]>d:
+                            print(stock)
+                            suggusted.append(stock)
+                    else:
+                        print('nashod')
+                except:
+                    print('e')
+                    # print(days)
+                    # print(today_index)
+                    # input()
+                # input()
+        print(suggusted)
+        print(len(suggusted))
+        return suggusted
+
+
+    def weekly_rule(self,x,today):
+        # print(x)
+        suggusted = []
+        for stock in Stock.objects.all():
+            stock_records= Record.objects.filter(stock=stock).order_by('date')
+            days = stock_records.values_list('date',flat=True).reverse()
+            today_index = 0
+            if days.exists():
+                check = True
+                stock_day = today
+                days = list(map(int, days))
+                while check and stock_day>days[-1]:
+                    if stock_day in days:
+                        today_index = days.index((stock_day))
+                        check = False
+                    else:
+                        # print('bad day')
+                        stock_day -= 1
+                # print(today_index)
+                # input()
+                # print(stock)
+                try:
+                    temp = days[:today_index+x]
+                    if not check:
+                        # print(today_index)
+                        ks = []
+                        to_use_records = []
+                        l = float(stock_records.filter(date=str(days[today_index]))[0].low)
+                        h = float(stock_records.filter(date=str(days[today_index]))[0].high)
+                        for i in range(x):
+                            now = stock_records.filter(date=str(days[today_index]))[0]
+                            to_use_records.append(now)
+                            if float(now.high)>h:
+                                h = float(now.high)
+                            if float(now.low)<l:
+                                l = float(now.low)
+                            today_index += 1                            
+                        for i in range(x):
+                            now = to_use_records[i]
+                            k = (float(now.close) - l) * 100 / (h-l)
+                            # print(dpp)
+                            ks.append(k)
+                            today_index += 1
+                        d = sum(ks[:3])/3                    
+                        if ks[0]>d:
+                            print(stock)
+                            suggusted.append(stock)
+                    else:
+                        print('nashod')
+                except:
+                    print('e')
+                    # print(days)
+                    # print(today_index)
+                    # input()
+                # input()
+        print(suggusted)
+        print(len(suggusted))
+        return suggusted
+
 
     def update(self):
         self.update_profit()
@@ -229,6 +371,7 @@ class Indicator(models.Model):
         # print(self.bought.all())
         self.last_update = datetime.now()
 
+
     def update_profit(self):
         # self.profit = 0
         for stock in self.bought.all():
@@ -238,10 +381,12 @@ class Indicator(models.Model):
             # print(self.profit)
         self.save()
 
+
     def mydelete(self):
         for bought in self.bought.all():
             bought.mydelete()
         self.delete()
+
 
     def __str__(self):
         return self.name
