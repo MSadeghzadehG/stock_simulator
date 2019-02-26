@@ -106,9 +106,13 @@ class Bought_stock(models.Model):
     time = models.DateTimeField(auto_now_add=True)
     profit = models.FloatField(default=0)
 
-    def update_profit(self):
-        self.profit = float(self.stock.payani) - self.price
-        self.save()
+    def update_profit(self,today):
+        now = Record.objects.filter(stock=self.stock,date=today)
+        if now.exists():
+            now = now[0]
+            self.profit = float(now.close) - self.price
+            self.save()
+
 
     def mydelete(self):
         Bought_stock.objects.get(stock=self.stock,time=self.time,price=self.price,profit=self.profit).delete()
@@ -126,7 +130,7 @@ class Indicator(models.Model):
     algorithm = models.CharField(max_length=500)
     last_update = models.DateTimeField(auto_now_add=True)
 
-    def mean_of_last_days(self,days):
+    def mean_of_last_days(self,days,today):
         # print(days)
         suggusted = []
         for stock in Stock.objects.all():
@@ -343,12 +347,12 @@ class Indicator(models.Model):
         return suggusted
 
 
-    def update(self):
-        self.update_profit()
+    def update(self,today):
+        self.update_profit(today)
         # self.algorithm = 'mean_of_last_days([10])'
         # self.save()
-        suggusted = eval('self.'+self.algorithm)
-        # print(suggusted)
+        suggusted = eval('self.'+self.algorithm.split(')')[0]+','+str(today)+')')
+        print(suggusted)
         for bought in self.bought.all():
             if not bought.stock.tmc_id in suggusted:
                 bought.mydelete()
@@ -365,11 +369,11 @@ class Indicator(models.Model):
         self.last_update = datetime.now()
 
 
-    def update_profit(self):
+    def update_profit(self,today):
         # self.profit = 0
         for stock in self.bought.all():
             self.profit -= stock.profit
-            stock.update_profit()
+            stock.update_profit(today)
             self.profit += stock.profit
             # print(self.profit)
         self.save()

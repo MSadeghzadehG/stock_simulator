@@ -4,7 +4,7 @@ from indicator.models import Stock,Record,Indicator,Bought_stock
 from django.core.exceptions import ObjectDoesNotExist
 from django.core import serializers
 from django.template import loader
-from datetime import datetime
+from datetime import datetime,date
 import os,datetime
 from django import forms
 import requests
@@ -63,20 +63,25 @@ def home(request):
     form = IndicatorForm(auto_id=False)
     template = loader.get_template('indicator/home.html')
     context = { 'form' : form }
-    Indicator.mfi(3,4,20190206)
+    today = int(''.join(map(str, str(date.today()).split('-'))))
+    print(today)
+    Indicator.update(Indicator.objects.all()[0],today=20190206)
     return HttpResponse(template.render(context, request))
 
 
 def stocks_table(request):
+    from django.db.models import IntegerField
+    from django.db.models.functions import Cast
     template = loader.get_template('indicator/stocks.html')
-    context = { 'stocks': serializers.serialize("python",Stock.objects.all()) , 'headers':[field.name for field in Stock._meta.get_fields()][3:]}
+    stocks = Stock.objects.annotate(my_integer_field=Cast('hajm_moamelat', IntegerField())).order_by('my_integer_field', 'hajm_moamelat').reverse()
+    context = { 'stocks': serializers.serialize("python",stocks) , 'headers':[field.name for field in Stock._meta.get_fields()][3:]}
     return HttpResponse(template.render(context, request))
 
 
 def records_table(request,id):
     template = loader.get_template('indicator/records.html')
     stock = Stock.objects.get(tmc_id=id)
-    records = Record.objects.filter(stock=stock)
+    records = Record.objects.filter(stock=stock).order_by('date').reverse()
     context = { 'records': serializers.serialize("python",records) , 'headers':[field.name for field in Record._meta.get_fields()][1:]}
     return HttpResponse(template.render(context, request))
 
@@ -93,7 +98,7 @@ def boughts_table(request,name):
 def indicators_table(request):
     print(len(Indicator.objects.all()))
     indicators = Indicator.objects.all()
-    update_indicators(serializers.serialize("python",indicators),repeat=5,repeat_until=None)
+    update_indicators(serializers.serialize("json",indicators),repeat=5,repeat_until=None)
     template = loader.get_template('indicator/indicators.html')
     context = { 'indicators': serializers.serialize("python",indicators) , 'headers':[field.name for field in Indicator._meta.get_fields()][1:-1]}
     return HttpResponse(template.render(context, request))
@@ -145,25 +150,25 @@ def update(request):
     r = requests.get('http://www.tsetmc.com/tsev2/data/MarketWatchInit.aspx?h=0&r=0')
     # headers = ['id','?','namad','nam','?','avalin','payani','akharin moamele','tedad moamelat','hajm moamelat','arzesh mamelat','baze rooz kam','baze rooz ziad','dirooz','eps','?','?','?','?','mojaz ziad','mojaz kam','?','?']
     # print(len(r.text.split('@')[2].split(';')))
-    # print(len(Stock.objects.all()))
-    # stocks_list = r.text.split('@')[2].split(';')
-    # # print(stocks_list)
-    # for i in stocks_list:
-    #     # print(i.split(',')[:23])
-    #     seprated = i.split(',')[:23]
-    #     # print(seprated)
-    #     # sleep(1)
-    #     new_entry = Stock(seprated[0],*seprated)
-    #     try:
-    #         found = Stock.objects.get(tmc_id = seprated[0])
-    #         found.update(*seprated[1:])
-    #         # found.save(id=seprated[0])
-    #         print('found'+str(found))
-    #         found.save()
-    #     except ObjectDoesNotExist:
-    #         print('new'+str(new_entry))
-    #         new_entry.save()       
-    # print(len(Stock.objects.all()))
+    print(len(Stock.objects.all()))
+    stocks_list = r.text.split('@')[2].split(';')
+    # print(stocks_list)
+    for i in stocks_list:
+        # print(i.split(',')[:23])
+        seprated = i.split(',')[:23]
+        # print(seprated)
+        # sleep(1)
+        new_entry = Stock(seprated[0],*seprated)
+        try:
+            found = Stock.objects.get(tmc_id = seprated[0])
+            found.update(*seprated[1:])
+            # found.save(id=seprated[0])
+            print('found'+str(found))
+            found.save()
+        except ObjectDoesNotExist:
+            print('new'+str(new_entry))
+            new_entry.save()       
+    print(len(Stock.objects.all()))
     # print([field.name for field in Stock._meta.get_fields()])
     # pdf_headers = ['Ticker','date','first','high','low','close','value','vol','openint','per','open','last']
     # print([field.name for field in Record._meta.get_fields()])
