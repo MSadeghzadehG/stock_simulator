@@ -50,11 +50,14 @@ class EmailForm(forms.Form):
 #         return HttpResponseRedirect('/email/')  
 
 
-
-@background(schedule=5)
-def update_indicators(indicators):
+@background(schedule=60)
+def update_indicators():
+    indicators = Indicator.objects.all()
+    # print('here')
+    today = int(''.join(map(str, str(date.today()).split('-'))))
+    print(today)
     for indicator in indicators:
-        indicator.update()
+        indicator.update(today=20190210)
     print('updated')
     print(datetime.datetime.now())
 
@@ -63,9 +66,6 @@ def home(request):
     form = IndicatorForm(auto_id=False)
     template = loader.get_template('indicator/home.html')
     context = { 'form' : form }
-    today = int(''.join(map(str, str(date.today()).split('-'))))
-    print(today)
-    Indicator.update(Indicator.objects.all()[0],today=20190206)
     return HttpResponse(template.render(context, request))
 
 
@@ -96,9 +96,10 @@ def boughts_table(request,name):
 
 
 def indicators_table(request):
-    print(len(Indicator.objects.all()))
+    # print(len(Indicator.objects.all()))
     indicators = Indicator.objects.all()
-    update_indicators(serializers.serialize("json",indicators),repeat=5,repeat_until=None)
+    update_indicators(schedule=60)#,repeat_until=None)
+    # update_indicators(serializers.serialize("python",indicators),repeat=1,repeat_until=None)
     template = loader.get_template('indicator/indicators.html')
     context = { 'indicators': serializers.serialize("python",indicators) , 'headers':[field.name for field in Indicator._meta.get_fields()][1:-1]}
     return HttpResponse(template.render(context, request))
@@ -127,7 +128,9 @@ def delete_indicator(request,name):
 def update_indicator(request,name):
     indicator = Indicator.objects.all().get(name=name)
     print(indicator)
-    # indicator.update()
+    today = int(''.join(map(str, str(date.today()).split('-'))))
+    print(today)
+    # indicator.update(today=20190206)
     return redirect('/indicators')
 
 
@@ -150,6 +153,7 @@ def update(request):
     r = requests.get('http://www.tsetmc.com/tsev2/data/MarketWatchInit.aspx?h=0&r=0')
     # headers = ['id','?','namad','nam','?','avalin','payani','akharin moamele','tedad moamelat','hajm moamelat','arzesh mamelat','baze rooz kam','baze rooz ziad','dirooz','eps','?','?','?','?','mojaz ziad','mojaz kam','?','?']
     # print(len(r.text.split('@')[2].split(';')))
+    print(len(Record.objects.all()))
     print(len(Stock.objects.all()))
     stocks_list = r.text.split('@')[2].split(';')
     # print(stocks_list)
@@ -172,7 +176,6 @@ def update(request):
     # print([field.name for field in Stock._meta.get_fields()])
     # pdf_headers = ['Ticker','date','first','high','low','close','value','vol','openint','per','open','last']
     # print([field.name for field in Record._meta.get_fields()])
-    print(len(Record.objects.all()))
     all_stock = Stock.objects.all()
     for i in all_stock:
         # print(i)

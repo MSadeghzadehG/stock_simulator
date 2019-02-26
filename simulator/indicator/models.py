@@ -109,9 +109,12 @@ class Bought_stock(models.Model):
     def update_profit(self,today):
         now = Record.objects.filter(stock=self.stock,date=today)
         if now.exists():
+            print('ok')
             now = now[0]
             self.profit = float(now.close) - self.price
             self.save()
+        else:
+            print('nok')
 
 
     def mydelete(self):
@@ -347,26 +350,34 @@ class Indicator(models.Model):
         return suggusted
 
 
+    def update_control(self,start_day,end_day):
+        pass
+
+
     def update(self,today):
         self.update_profit(today)
         # self.algorithm = 'mean_of_last_days([10])'
         # self.save()
         suggusted = eval('self.'+self.algorithm.split(')')[0]+','+str(today)+')')
-        print(suggusted)
+        # print(suggusted)
         for bought in self.bought.all():
             if not bought.stock.tmc_id in suggusted:
                 bought.mydelete()
         for id in suggusted:
-            print(list(self.bought.all().values_list('stock', flat=True)))
-            print(id)
+            # print(list(self.bought.all().values_list('stock', flat=True)))
+            # print(id)
             if int(id) not in list(self.bought.all().values_list('stock', flat=True)):
                 stock = Stock.objects.get(tmc_id=id)
-                bought_stock =  Bought_stock(stock=stock,price=stock.akharin_moamele)
+                bought_stock = Bought_stock(stock=stock,price=stock.akharin_moamele)
                 # print(bought_stock)
                 bought_stock.save()
                 self.bought.add(bought_stock)
         # print(self.bought.all())
+        # print(self.last_update)
+        # print(datetime.now())
         self.last_update = datetime.now()
+        self.save()
+        # print(self.last_update)
 
 
     def update_profit(self,today):
