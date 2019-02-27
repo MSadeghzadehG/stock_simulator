@@ -1,5 +1,9 @@
 from django.db import models
 from datetime import datetime
+from django.utils import timezone
+
+# import json
+# from django.core import serializers
 
 
 class Stock(models.Model):
@@ -109,12 +113,13 @@ class Bought_stock(models.Model):
     def update_profit(self,today):
         now = Record.objects.filter(stock=self.stock,date=today)
         if now.exists():
-            print('ok')
+            # print('ok')
             now = now[0]
             self.profit = float(now.close) - self.price
             self.save()
         else:
-            print('nok')
+            pass
+            # print('nok')
 
 
     def mydelete(self):
@@ -351,8 +356,23 @@ class Indicator(models.Model):
 
 
     def update_control(self,start_day,end_day):
-        pass
-
+        log = []
+        today = start_day
+        while today<end_day:
+            self.update(today)
+            print(today)
+            if today%10000==1231:
+                today = (int(today/10000) + 1)*10000 + 100
+            if today%100 == 31:
+                today += 69
+            today += 1
+            o = {}
+            for i in Indicator._meta.get_fields():
+                o['date'] = today
+                o[i.name] = getattr(self,i.name)
+            print(len(o['bought'].all()))
+            log.append(o)
+            print(log)
 
     def update(self,today):
         self.update_profit(today)
@@ -360,22 +380,28 @@ class Indicator(models.Model):
         # self.save()
         suggusted = eval('self.'+self.algorithm.split(')')[0]+','+str(today)+')')
         # print(suggusted)
-        for bought in self.bought.all():
+        boughts = self.bought.all()
+        for bought in boughts:
             if not bought.stock.tmc_id in suggusted:
                 bought.mydelete()
+                print('deleted')
         for id in suggusted:
-            # print(list(self.bought.all().values_list('stock', flat=True)))
-            # print(id)
-            if int(id) not in list(self.bought.all().values_list('stock', flat=True)):
+            if int(id) not in list(boughts.values_list('stock', flat=True)):
                 stock = Stock.objects.get(tmc_id=id)
-                bought_stock = Bought_stock(stock=stock,price=stock.akharin_moamele)
-                # print(bought_stock)
-                bought_stock.save()
-                self.bought.add(bought_stock)
+                price = Record.objects.filter(stock=stock,date=today)
+                # print(price)
+                # print(stock.akharin_moamele)
+                if price.exists():
+                    price = price[0].close
+                    bought_stock = Bought_stock(stock=stock,price=price)
+                    print('bought_stock')
+                    bought_stock.save()
+                    self.bought.add(bought_stock)
+
         # print(self.bought.all())
         # print(self.last_update)
         # print(datetime.now())
-        self.last_update = datetime.now()
+        self.last_update = datetime.now(tz=timezone.utc)
         self.save()
         # print(self.last_update)
 

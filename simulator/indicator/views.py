@@ -89,7 +89,7 @@ def records_table(request,id):
 def boughts_table(request,name):
     template = loader.get_template('indicator/bought.html')
     indicator = Indicator.objects.get(name=name)
-    indicator.update_profit()
+    # indicator.update_profit()
     boughts = indicator.bought.all()
     context = { 'stocks': serializers.serialize("python",boughts) , 'headers':[field.name for field in Bought_stock._meta.get_fields()][2:]}
     return HttpResponse(template.render(context, request))
@@ -98,7 +98,7 @@ def boughts_table(request,name):
 def indicators_table(request):
     # print(len(Indicator.objects.all()))
     indicators = Indicator.objects.all()
-    update_indicators(schedule=60)#,repeat_until=None)
+    # update_indicators(schedule=60)#,repeat_until=None)
     # update_indicators(serializers.serialize("python",indicators),repeat=1,repeat_until=None)
     template = loader.get_template('indicator/indicators.html')
     context = { 'indicators': serializers.serialize("python",indicators) , 'headers':[field.name for field in Indicator._meta.get_fields()][1:-1]}
@@ -130,7 +130,7 @@ def update_indicator(request,name):
     print(indicator)
     today = int(''.join(map(str, str(date.today()).split('-'))))
     print(today)
-    # indicator.update(today=20190206)
+    indicator.update_control(20190215,20190219)
     return redirect('/indicators')
 
 
