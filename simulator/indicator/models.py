@@ -1,10 +1,11 @@
 from django.db import models
-from datetime import datetime
+from datetime import datetime,date
 from django.utils import timezone
-
+import math
 # import json
 # from django.core import serializers
 
+DEFAULT_BUY = 1000000
 
 class Stock(models.Model):
     # id = models.BigIntegerField(unique=True, primary_key=True)
@@ -109,13 +110,15 @@ class Bought_stock(models.Model):
     price = models.FloatField()
     time = models.DateTimeField(auto_now_add=True)
     profit = models.FloatField(default=0)
+    volume = models.FloatField(default=0)
+
 
     def update_profit(self,today):
         now = Record.objects.filter(stock=self.stock,date=today)
         if now.exists():
             # print('ok')
             now = now[0]
-            self.profit = float(now.close) - self.price
+            self.profit = (float(now.close) - self.price)*self.volume
             self.save()
         else:
             pass
@@ -134,8 +137,11 @@ class Indicator(models.Model):
     bought = models.ManyToManyField(Bought_stock)
     name = models.CharField(max_length=300,unique = True)
     start_time = models.DateTimeField(auto_now_add=True)
+    algorithm = models.CharField(max_length=300)
+    paid = models.FloatField(default=0)
+    bought_stocks_value = models.FloatField(default=0)
+    gain = models.FloatField(default=0)
     profit = models.FloatField(default=0)
-    algorithm = models.CharField(max_length=500)
     last_update = models.DateTimeField(auto_now_add=True)
 
     def mean_of_last_days(self,days,today):
@@ -182,15 +188,14 @@ class Indicator(models.Model):
         # print(x)
         suggusted = []
         for stock in Stock.objects.all():
-            stock_records= Record.objects.filter(stock=stock).order_by('date')
-            days = stock_records.values_list('date',flat=True).reverse()
+            stock_records= Record.objects.filter(stock=stock,date=date)
             today_index = 0
-            if days.exists():
+            if stock_records.exists():
                 check = True
                 stock_day = today
                 days = list(map(int, days))
                 while check and stock_day>days[-1]:
-                    if stock_day in days:
+                    if stock_day in days: 
                         today_index = days.index((stock_day))
                         check = False
                     else:
@@ -227,18 +232,20 @@ class Indicator(models.Model):
                         MFI = 1 - 1 /(1+m_indicator)
                         # print(MFI)
                         if MFI>0.5:
-                            print(stock)
-                            suggusted.append(stock)
+                            # print(stock)
+                            suggusted.append(stock.tmc_id)
                     else:
-                        print('nashod')
+                        # print('nashod')
+                        pass
                 except:
-                    print('e')
+                    # print('e')
+                    pass
                     # print(days)
                     # print(today_index)
                     # input()
                 # input()
-        print(suggusted)
-        print(len(suggusted))
+        # print(suggusted)
+        # print(len(suggusted))
         return suggusted
 
 
@@ -287,18 +294,20 @@ class Indicator(models.Model):
                             today_index += 1
                         d = sum(ks[:3])/3                    
                         if ks[0]>d:
-                            print(stock)
-                            suggusted.append(stock)
+                            # print(stock)
+                            suggusted.append(stock.tmc_id)
                     else:
-                        print('nashod')
+                        # print('nashod')
+                        pass
                 except:
-                    print('e')
+                    # print('e')
                     # print(days)
                     # print(today_index)
                     # input()
+                    pass
                 # input()
-        print(suggusted)
-        print(len(suggusted))
+        # print(suggusted)
+        # print(len(suggusted))
         return suggusted
 
 
@@ -370,9 +379,20 @@ class Indicator(models.Model):
             for i in Indicator._meta.get_fields():
                 o['date'] = today
                 o[i.name] = getattr(self,i.name)
-            print(len(o['bought'].all()))
+            # for i in list(o['bought'].all()):
             log.append(o)
-            print(log)
+            # print(log)
+
+
+    def update_today(self):
+        today = int(''.join(map(str, str(date.today()).split('-'))))
+        print(today)
+        for stock in self.bought.all():
+            if not Record.objects.filter(stock=stock,date=today).exists():
+                # today_record = Record(stock=stock,date=today,first=stock.avalin,high=stock.baze_rooz_ziad,low=stock.baze_rooz_kam,close=stock.akharin_moamele,\
+                #     value=stock.arzesh_moamelat,vol=stock.hajm_moamelat,openint=0,per='d',openp=0,last=stock.payani)
+                pass
+
 
     def update(self,today):
         self.update_profit(today)
@@ -381,19 +401,22 @@ class Indicator(models.Model):
         suggusted = eval('self.'+self.algorithm.split(')')[0]+','+str(today)+')')
         # print(suggusted)
         boughts = self.bought.all()
+        # print(suggusted)
+        # print(boughts)
         for bought in boughts:
-            if not bought.stock.tmc_id in suggusted:
+            if not bought.stock.tmc_id in suggusted:                
                 bought.mydelete()
                 print('deleted')
         for id in suggusted:
             if int(id) not in list(boughts.values_list('stock', flat=True)):
                 stock = Stock.objects.get(tmc_id=id)
                 price = Record.objects.filter(stock=stock,date=today)
-                # print(price)
                 # print(stock.akharin_moamele)
                 if price.exists():
-                    price = price[0].close
-                    bought_stock = Bought_stock(stock=stock,price=price)
+                    price = float(price[0].close)
+                    volume = math.ceil(DEFAULT_BUY/price)
+                    # print(volume,price)
+                    bought_stock = Bought_stock(stock=stock,price=price,volume=volume)
                     print('bought_stock')
                     bought_stock.save()
                     self.bought.add(bought_stock)
@@ -407,12 +430,13 @@ class Indicator(models.Model):
 
 
     def update_profit(self,today):
-        # self.profit = 0
+        self.profit = 0
         for stock in self.bought.all():
-            self.profit -= stock.profit
+            # self.profit -= stock.profit * stock.volume
             stock.update_profit(today)
             self.profit += stock.profit
             # print(self.profit)
+        
         self.save()
 
 
