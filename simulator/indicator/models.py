@@ -190,58 +190,48 @@ class Indicator(models.Model):
 
 
     def mfi(self,x,today):
-        # print(x)
+        check = False
         suggusted = []
-        for stock in Stock.objects.all():
-            stock_records= Record.objects.filter(stock=stock,date=date)
-            today_index = 0
-            if stock_records.exists():
+        all_stocks = Stock.objects.all()
+        for stock in all_stocks:
+            stock_records= Record.objects.filter(stock=stock)
+            if stock_records.filter(date=today).exists():
                 check = True
+                today_index = 0
                 stock_day = today
-                days = list(map(int, days))
-                while check and stock_day>days[-1]:
-                    if stock_day in days: 
-                        today_index = days.index((stock_day))
-                        check = False
-                    else:
-                        # print('bad day')
-                        stock_day -= 1
+                days = list(map(int, stock_records.values_list('date',flat=True).reverse()))
                 # print(today_index)
                 # input()
                 # print(stock)
                 try:
                     temp = days[:today_index+x]
-                    if not check:
-                        # print(today_index)
-                        dpps = []
-                        i_p = 0
-                        i_n = 0
-                        for i in range(x):
-                            now = stock_records.filter(date=str(days[today_index]))[0]
-                            # print(now.high)
-                            dpp = (float(now.high) + float(now.low) + float(now.close)) / 3 * float(now.vol)
-                            # print(dpp)
-                            dpps.append(dpp)
-                            today_index += 1
-                        for i in range(x-1):
-                            # print(dpps[i+1])
-                            # print(dpps[i])
-                            if dpps[i+1]>dpps[i]:
-                                i_p += dpps[i+1]
-                            else:
-                                i_n += dpps[i+1]
-                        # print(i_p)
-                        # print(i_n)
-                        # print()
-                        m_indicator = i_p / i_n
-                        MFI = 1 - 1 /(1+m_indicator)
-                        # print(MFI)
-                        if MFI>0.5:
-                            # print(stock)
-                            suggusted.append(stock.tmc_id)
-                    else:
-                        # print('nashod')
-                        pass
+                    # print(today_index)
+                    dpps = []
+                    i_p = 0
+                    i_n = 0
+                    for i in range(x):
+                        now = stock_records.filter(date=str(days[today_index]))[0]
+                        # print(now.high)
+                        dpp = (float(now.high) + float(now.low) + float(now.close)) / 3 * float(now.vol)
+                        # print(dpp)
+                        dpps.append(dpp)
+                        today_index += 1
+                    for i in range(x-1):
+                        # print(dpps[i+1])
+                        # print(dpps[i])
+                        if dpps[i+1]>dpps[i]:
+                            i_p += dpps[i+1]
+                        else:
+                            i_n += dpps[i+1]
+                    # print(i_p)
+                    # print(i_n)
+                    # print()
+                    m_indicator = i_p / i_n
+                    MFI = 1 - 1 /(1+m_indicator)
+                    # print(MFI)
+                    if MFI>0.5:
+                        # print(stock)
+                        suggusted.append(stock.tmc_id)
                 except:
                     # print('e')
                     pass
@@ -251,8 +241,10 @@ class Indicator(models.Model):
                 # input()
         # print(suggusted)
         # print(len(suggusted))
-
-        return suggusted
+        if check:
+            return suggusted,set(all_stocks.values_list('tmc_id',flat=True))-set(suggusted)
+        else:
+            return [],[]
 
 
     def stockastic(self,x,today):
