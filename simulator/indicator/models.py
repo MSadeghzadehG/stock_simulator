@@ -149,15 +149,16 @@ class Indicator(models.Model):
     last_update = models.DateTimeField(auto_now_add=True)
 
 
-    def ema(self,days,today):
-        # print(days)
+    def ema(self,x,today):
+        check = True
         suggusted = []
-        for stock in Stock.objects.all():
+        all_stocks = Stock.objects.all()
+        for stock in all_stocks:
             weighted_avg = []
-            # print(stock['nam'])
             # try :
-            for day in days:
-                to_check1 = Record.objects.filter(stock=stock).values_list('last')
+            for day in x:
+                stock_records = Record.objects.filter(stock=stock)
+                to_check1 = stock_records.values_list('close')
                 to_check1 = to_check1[:min(day,len(to_check1))]
                 to_check = []
                 for i in to_check1:
@@ -166,27 +167,24 @@ class Indicator(models.Model):
                 weighted_avg.append(0)
                 for i in range(0,len(to_check)):
                     # print((len(to_check)-i))
-                    weighted_avg[days.index(day)] += (len(to_check)-i)*to_check[i]
+                    weighted_avg[x.index(day)] += (len(to_check)-i)*to_check[i]
                     div += (len(to_check)-i)
-                weighted_avg[days.index(day)] /= div
+                weighted_avg[x.index(day)] /= div
                 # print(weighted_avg)
-                # print(stock['akharin moamele'])
             check = True
             for i in range(1,len(weighted_avg)):
                 if weighted_avg[i]<=weighted_avg[i-1]:
                     check=False
-            if len(days)==1:
-                # print(stock['akharin moamele'])
+            if len(x)==1:
                 # print(weighted_avg[0])
-                # print('')
-                if weighted_avg[0]>float(stock.akharin_moamele):
+                if weighted_avg[0]>float(stock_records.get(date=today).close):
                     suggusted.append(stock.getID())
             elif check:
                 suggusted.append(stock.getID())
             # except:
             #     print('e')
             #     pass
-        return suggusted
+        return suggusted,set(all_stocks.values_list('tmc_id',flat=True))-set(suggusted)
 
 
     def mfi(self,x,today):
@@ -210,7 +208,7 @@ class Indicator(models.Model):
                     i_p = 0
                     i_n = 0
                     for i in range(x):
-                        now = stock_records.filter(date=str(days[today_index]))[0]
+                        now = stock_records.get(date=str(days[today_index]))
                         # print(now.high)
                         dpp = (float(now.high) + float(now.low) + float(now.close)) / 3 * float(now.vol)
                         # print(dpp)
@@ -262,10 +260,10 @@ class Indicator(models.Model):
                     # print(today_index)
                     ks = []
                     to_use_records = []
-                    l = float(stock_records.filter(date=str(days[today_index]))[0].low)
-                    h = float(stock_records.filter(date=str(days[today_index]))[0].high)
+                    l = float(stock_records.get(date=str(days[today_index])).low)
+                    h = float(stock_records.get(date=str(days[today_index])).high)
                     for i in range(x):
-                        now = stock_records.filter(date=str(days[today_index]))[0]
+                        now = stock_records.get(date=str(days[today_index]))
                         to_use_records.append(now)
                         if float(now.high)>h:
                             h = float(now.high)
@@ -321,12 +319,12 @@ class Indicator(models.Model):
                     temp = days[today_index+7*x-1]
                     if not check:
                         # print(today_index)
-                        now = stock_records.filter(date=str(days[today_index]))[0]
+                        now = stock_records.get(date=str(days[today_index]))
                         l = float(now.low)
                         h = float(now.high)
                         c = float(now.close)
                         for i in range(7*x):
-                            now = stock_records.filter(date=str(days[today_index]))[0]
+                            now = stock_records.get(date=str(days[today_index]))
                             to_use_records.append(now)
                             if float(now.high)>h:
                                 h = float(now.high)
@@ -350,7 +348,55 @@ class Indicator(models.Model):
 
 
     def rsi(self,x,today):
-        pass
+        check = False
+        suggusted = []
+        all_stocks = Stock.objects.all()
+        for stock in all_stocks:
+            stock_records= Record.objects.filter(stock=stock).order_by('date')
+            if stock_records.filter(date=today).exists():
+                check = True
+                today_index = 0
+                stock_day = today
+                days = list(map(int, stock_records.values_list('date',flat=True).reverse()))
+                # print(stock)
+                try:
+                    temp = days[:today_index+x]
+                    prices = []
+                    increasing_indexes = []
+                    decreasing_indexes = []
+                    for i in range(x):
+                        now = stock_records.get(date=str(days[today_index]))
+                        prices.append(float(now.close))
+                        today_index += 1
+                    for i in range(x-1):
+                        # print(dpps[i+1])
+                        # print(dpps[i])
+                        if prices[i+1]>prices[i]:
+                            increasing_indexes.append(i+1)
+                        else:
+                            decreasing_indexes.append(i+1)
+                    # print(prices)
+                    p = sum([prices[i] for i in increasing_indexes])/len(increasing_indexes)
+                    n = sum([prices[i] for i in decreasing_indexes])/len(decreasing_indexes)
+                    m_indicator = p/n
+                    RSI = 1 - 1 /(1+m_indicator)
+                    # print(RSI)
+                    if RSI>0.5:
+                        # print(stock)
+                        suggusted.append(stock.tmc_id)
+                except:
+                    # print('e')
+                    pass
+                    # print(days)
+                    # print(today_index)
+                    # input()
+                # input()
+        # print(suggusted)
+        # print(len(suggusted))
+        if check:
+            return suggusted,set(all_stocks.values_list('tmc_id',flat=True))-set(suggusted)
+        else:
+            return [],[]
 
     
     def ma(self,days,today):
