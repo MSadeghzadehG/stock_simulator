@@ -358,7 +358,39 @@ class Indicator(models.Model):
 
     
     def aoc(self,x,today):
-        pass
+        check = False
+        suggusted = []
+        all_stocks = Stock.objects.all()
+        for stock in all_stocks:
+            stock_records= Record.objects.filter(stock=stock).order_by('date')
+            if stock_records.filter(date=today).exists():
+                check = True
+                today_index = 0
+                stock_day = today
+                days = list(map(int, stock_records.values_list('date',flat=True).reverse()))
+                # print(today_index)
+                # input()
+                # print(stock)
+                try:
+                    # print(today_index)
+                    now = float(stock_records.filter(date=str(days[today_index]))[0].close)
+                    last = float(stock_records.filter(date=str(days[today_index+x-1]))[0].close)
+                    if now>last:
+                        # print(stock)
+                        suggusted.append(stock.tmc_id)
+                except:
+                    # print('e')
+                    pass
+                    # print(days)
+                    # print(today_index)
+                    # input()
+                # input()
+        # print(suggusted)
+        # print(len(suggusted))
+        if check:
+            return suggusted,set(all_stocks.values_list('tmc_id',flat=True))-set(suggusted)
+        else:
+            return [],[]
 
 
     def update_control(self,start_day,end_day):
