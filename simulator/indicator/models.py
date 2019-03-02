@@ -194,7 +194,7 @@ class Indicator(models.Model):
         suggusted = []
         all_stocks = Stock.objects.all()
         for stock in all_stocks:
-            stock_records= Record.objects.filter(stock=stock)
+            stock_records= Record.objects.filter(stock=stock).order_by('date')
             if stock_records.filter(date=today).exists():
                 check = True
                 today_index = 0
@@ -248,56 +248,39 @@ class Indicator(models.Model):
 
 
     def stockastic(self,x,today):
-        # print(x)
+        check = False
         suggusted = []
         all_stocks = Stock.objects.all()
         for stock in all_stocks:
             stock_records= Record.objects.filter(stock=stock).order_by('date')
-            days = stock_records.values_list('date',flat=True).reverse()
-            today_index = 0
-            if days.exists():
+            if stock_records.filter(date=today).exists():
                 check = True
-                stock_day = today
-                days = list(map(int, days))
-                while check and stock_day>days[-1]:
-                    if stock_day in days:
-                        today_index = days.index((stock_day))
-                        check = False
-                    else:
-                        # print('bad day')
-                        stock_day -= 1
-                # print(today_index)
-                # input()
-                # print(stock)
+                today_index = 0
+                days = list(map(int, stock_records.values_list('date',flat=True).reverse()))
                 try:
                     temp = days[:today_index+x]
-                    if not check:
-                        # print(today_index)
-                        ks = []
-                        to_use_records = []
-                        l = float(stock_records.filter(date=str(days[today_index]))[0].low)
-                        h = float(stock_records.filter(date=str(days[today_index]))[0].high)
-                        for i in range(x):
-                            now = stock_records.filter(date=str(days[today_index]))[0]
-                            to_use_records.append(now)
-                            if float(now.high)>h:
-                                h = float(now.high)
-                            if float(now.low)<l:
-                                l = float(now.low)
-                            today_index += 1                            
-                        for i in range(x):
-                            now = to_use_records[i]
-                            k = (float(now.close) - l) * 100 / (h-l)
-                            # print(dpp)
-                            ks.append(k)
-                            today_index += 1
-                        d = sum(ks[:3])/3                    
-                        if ks[0]>d:
-                            # print(stock)
-                            suggusted.append(stock.tmc_id)
-                    else:
-                        # print('nashod')
-                        pass
+                    # print(today_index)
+                    ks = []
+                    to_use_records = []
+                    l = float(stock_records.filter(date=str(days[today_index]))[0].low)
+                    h = float(stock_records.filter(date=str(days[today_index]))[0].high)
+                    for i in range(x):
+                        now = stock_records.filter(date=str(days[today_index]))[0]
+                        to_use_records.append(now)
+                        if float(now.high)>h:
+                            h = float(now.high)
+                        if float(now.low)<l:
+                            l = float(now.low)
+                        today_index += 1                            
+                    for i in range(x):
+                        now = to_use_records[i]
+                        k = (float(now.close) - l) * 100 / (h-l)
+                        ks.append(k)
+                        today_index += 1
+                    d = sum(ks[:3])/3                    
+                    if ks[0]>d:
+                        # print(stock)
+                        suggusted.append(stock.tmc_id)
                 except:
                     # print('e')
                     # print(days)
@@ -307,7 +290,10 @@ class Indicator(models.Model):
                 # input()
         # print(suggusted)
         # print(len(suggusted))        
-        return suggusted,set(all_stocks.values_list('tmc_id',flat=True))-set(suggusted)
+        if check:
+            return suggusted,set(all_stocks.values_list('tmc_id',flat=True))-set(suggusted)
+        else:
+            return [],[]
 
 
     def weekly_rule(self,x,today):
