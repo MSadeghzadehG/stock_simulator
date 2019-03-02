@@ -6,6 +6,8 @@ import math
 # from django.core import serializers
 
 DEFAULT_BUY = 1000000
+BUY_FEE = 0.00486
+SELL_FEE = 0.01029
 
 class Stock(models.Model):
     # id = models.BigIntegerField(unique=True, primary_key=True)
@@ -107,18 +109,20 @@ class Record(models.Model):
 
 class Bought_stock(models.Model):
     stock = models.ForeignKey(Stock,on_delete=models.DO_NOTHING)
-    price = models.FloatField()
     time = models.DateTimeField(auto_now_add=True)
-    profit = models.FloatField(default=0)
     volume = models.FloatField(default=0)
+    purchase_price = models.FloatField(default=0)
+    current_price = models.FloatField(default=0)
+    profit = models.FloatField(default=0)
 
 
-    def update_profit(self,today):
+    def update_price(self,today):
         now = Record.objects.filter(stock=self.stock,date=today)
         if now.exists():
             # print('ok')
             now = now[0]
-            self.profit = (float(now.close) - self.price)*self.volume
+            self.current_price = float(now.close)
+            self.profit = (float(self.current_price / self.purchase_price) - 1 ) * 100
             self.save()
         else:
             pass
@@ -126,7 +130,7 @@ class Bought_stock(models.Model):
 
 
     def mydelete(self):
-        Bought_stock.objects.get(stock=self.stock,time=self.time,price=self.price,profit=self.profit).delete()
+        Bought_stock.objects.get(stock=self.stock,time=self.time).delete()
 
     def __str__(self):
         return self.stock.__str__() + ' - ' + str(self.profit)
@@ -144,7 +148,8 @@ class Indicator(models.Model):
     profit = models.FloatField(default=0)
     last_update = models.DateTimeField(auto_now_add=True)
 
-    def mean_of_last_days(self,days,today):
+
+    def ema(self,days,today):
         # print(days)
         suggusted = []
         for stock in Stock.objects.all():
@@ -246,13 +251,15 @@ class Indicator(models.Model):
                 # input()
         # print(suggusted)
         # print(len(suggusted))
+
         return suggusted
 
 
     def stockastic(self,x,today):
         # print(x)
         suggusted = []
-        for stock in Stock.objects.all():
+        all_stocks = Stock.objects.all()
+        for stock in all_stocks:
             stock_records= Record.objects.filter(stock=stock).order_by('date')
             days = stock_records.values_list('date',flat=True).reverse()
             today_index = 0
@@ -307,8 +314,8 @@ class Indicator(models.Model):
                     pass
                 # input()
         # print(suggusted)
-        # print(len(suggusted))
-        return suggusted
+        # print(len(suggusted))        
+        return suggusted,set(all_stocks.values_list('tmc_id',flat=True))-set(suggusted)
 
 
     def weekly_rule(self,x,today):
@@ -364,6 +371,18 @@ class Indicator(models.Model):
         return suggusted
 
 
+    def rsi(self,x,today):
+        pass
+
+    
+    def ma(self,days,today):
+        pass
+
+    
+    def aoc(self,x,today):
+        pass
+
+
     def update_control(self,start_day,end_day):
         log = []
         today = start_day
@@ -389,8 +408,9 @@ class Indicator(models.Model):
         print(today)
         for stock in self.bought.all():
             if not Record.objects.filter(stock=stock,date=today).exists():
-                # today_record = Record(stock=stock,date=today,first=stock.avalin,high=stock.baze_rooz_ziad,low=stock.baze_rooz_kam,close=stock.akharin_moamele,\
-                #     value=stock.arzesh_moamelat,vol=stock.hajm_moamelat,openint=0,per='d',openp=0,last=stock.payani)
+                today_record = Record(stock=stock,date=today,first=stock.avalin,high=stock.baze_rooz_ziad,low=stock.baze_rooz_kam,close=stock.akharin_moamele,\
+                    value=stock.arzesh_moamelat,vol=stock.hajm_moamelat,openint=0,per='d',openp=0,last=stock.payani)
+                
                 pass
 
 
@@ -398,16 +418,18 @@ class Indicator(models.Model):
         self.update_profit(today)
         # self.algorithm = 'mean_of_last_days([10])'
         # self.save()
-        suggusted = eval('self.'+self.algorithm.split(')')[0]+','+str(today)+')')
-        # print(suggusted)
+        to_buy,to_sell = eval('self.'+self.algorithm.split(')')[0]+','+str(today)+')')
+        print(len(to_buy))
+        print(len(to_sell))
         boughts = self.bought.all()
         # print(suggusted)
         # print(boughts)
         for bought in boughts:
-            if not bought.stock.tmc_id in suggusted:                
+            if bought.stock.tmc_id in to_sell:                
+                self.gain += bought.current_price * bought.volume
                 bought.mydelete()
                 print('deleted')
-        for id in suggusted:
+        for id in to_buy:
             if int(id) not in list(boughts.values_list('stock', flat=True)):
                 stock = Stock.objects.get(tmc_id=id)
                 price = Record.objects.filter(stock=stock,date=today)
@@ -416,11 +438,11 @@ class Indicator(models.Model):
                     price = float(price[0].close)
                     volume = math.ceil(DEFAULT_BUY/price)
                     # print(volume,price)
-                    bought_stock = Bought_stock(stock=stock,price=price,volume=volume)
+                    bought_stock = Bought_stock(stock=stock,purchase_price=price,current_price=price,volume=volume)
+                    self.paid += price * volume
                     print('bought_stock')
                     bought_stock.save()
                     self.bought.add(bought_stock)
-
         # print(self.bought.all())
         # print(self.last_update)
         # print(datetime.now())
@@ -430,13 +452,14 @@ class Indicator(models.Model):
 
 
     def update_profit(self,today):
-        self.profit = 0
+        self.bought_stocks_value = 0
         for stock in self.bought.all():
             # self.profit -= stock.profit * stock.volume
-            stock.update_profit(today)
-            self.profit += stock.profit
+            stock.update_price(today)
+            self.bought_stocks_value += stock.current_price * stock.volume
             # print(self.profit)
-        
+        if self.paid>0:
+            self.profit = (float((self.gain + self.bought_stocks_value) / self.paid) - 1) * 100
         self.save()
 
 
