@@ -64,6 +64,7 @@ def update_indicators():
 
 def home(request):
     form = IndicatorForm(auto_id=False)
+    # print(Bought_stock.objects.all())
     template = loader.get_template('indicator/home.html')
     context = { 'form' : form }
     return HttpResponse(template.render(context, request))
@@ -131,7 +132,7 @@ def update_indicator(request,name):
     print(indicator)
     today = int(''.join(map(str, str(date.today()).split('-'))))
     print(today)
-    indicator.update_control(20180130,20180210)
+    indicator.update_control(20181130,20181230)
     return redirect('/indicators')
 
 
@@ -139,10 +140,10 @@ def delete_database(request):
     # Record.objects.all().delete()
     # Stock.objects.all().delete()
     # Indicator.objects.all().delete()
-    for o in Indicator.objects.all():
-        o.mydelete()
-    print(len(Indicator.objects.all()))
-    # Bought_stock.objects.all().delete()
+    # for o in Indicator.objects.all():
+    #     o.mydelete()
+    # print(len(Indicator.objects.all()))
+    Bought_stock.objects.all().delete()
     print(len(Bought_stock.objects.all()))
     return HttpResponse('deleted')
 
