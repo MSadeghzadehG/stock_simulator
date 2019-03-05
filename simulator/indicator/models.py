@@ -150,19 +150,18 @@ class Indicator(models.Model):
 
 
     def ema(self,x,today):
-        check = True
-        suggusted = []
+        to_buy = []
+        to_sell = []
         all_stocks = Stock.objects.all()
         is_valid = False
         for stock in all_stocks:
             weighted_avg = []
             stock_records = Record.objects.filter(stock=stock).order_by('date')
             close_prices = list(stock_records.values_list('close',flat=True))
-            #try:
             if stock_records.filter(date=str(today)).exists():
                 today_index = list(stock_records.values_list('date',flat=True)).index(str(today))
                 for day in x:
-                    day_range_prices = close_prices[:today_index+day]
+                    day_range_prices = close_prices[today_index:today_index+day]
                     to_check = []
                     for i in day_range_prices:
                         to_check.append(float(i))
@@ -173,23 +172,31 @@ class Indicator(models.Model):
                         weighted_avg[x.index(day)] += (len(to_check)-i)*to_check[i]
                         div += (len(to_check)-i)
                     weighted_avg[x.index(day)] /= div
-                check = True
+                increase_check = True
+                decrease_check = True
                 # print(weighted_avg)
                 for i in range(1,len(weighted_avg)):
-                    if weighted_avg[i]<weighted_avg[i-1]:
-                        check=False
+                    if weighted_avg[i] <= weighted_avg[i-1]:
+                        increase_check = False
+                    if weighted_avg[i] >= weighted_avg[i-1]:
+                        decrease_check = False
                 if len(x)==1:
                     # print(weighted_avg[0])
                     if weighted_avg[0]>float(stock_records.get(date=today).close):
-                        suggusted.append(stock.getID())
+                        to_buy.append(stock.getID())
                         is_valid = True
-                elif check:
-                    suggusted.append(stock.getID())
-                    is_valid = True
+                else:
+                    if increase_check:
+                        to_buy.append(stock.getID())
+                        is_valid = True
+                    if decrease_check:
+                        to_sell.append(stock.getID())
+                        is_valid = True
         if is_valid:
-            return suggusted,set(all_stocks.values_list('tmc_id',flat=True))-set(suggusted)
+            return to_buy,to_sell
         else:
             return [],[]
+
 
     def mfi(self,x,today):
         check = False
@@ -399,7 +406,52 @@ class Indicator(models.Model):
 
     
     def ma(self,days,today):
-        pass
+        to_buy = []
+        to_sell = []
+        all_stocks = Stock.objects.all()
+        is_valid = False
+        for stock in all_stocks:
+            weighted_avg = []
+            stock_records = Record.objects.filter(stock=stock).order_by('date')
+            close_prices = list(stock_records.values_list('close',flat=True))
+            if stock_records.filter(date=str(today)).exists():
+                today_index = list(stock_records.values_list('date',flat=True)).index(str(today))
+                for day in x:
+                    day_range_prices = close_prices[:today_index+day]
+                    to_check = []
+                    for i in day_range_prices:
+                        to_check.append(float(i))
+                    div = 1
+                    weighted_avg.append(0)
+                    for i in range(len(to_check)):
+                        # print((len(to_check)-i))
+                        weighted_avg[x.index(day)] += (len(to_check)-i)*to_check[i]
+                        div += (len(to_check)-i)
+                    weighted_avg[x.index(day)] /= div
+                increase_check = True
+                decrease_check = True
+                # print(weighted_avg)
+                for i in range(1,len(weighted_avg)):
+                    if weighted_avg[i] <= weighted_avg[i-1]:
+                        increase_check = False
+                    if weighted_avg[i] >= weighted_avg[i-1]:
+                        decrease_check = False
+                if len(x)==1:
+                    # print(weighted_avg[0])
+                    if weighted_avg[0]>float(stock_records.get(date=today).close):
+                        to_buy.append(stock.getID())
+                        is_valid = True
+                else:
+                    if increase_check:
+                        to_buy.append(stock.getID())
+                        is_valid = True
+                    if decrease_check:
+                        to_sell.append(stock.getID())
+                        is_valid = True
+        if is_valid:
+            return to_buy,to_sell
+        else:
+            return [],[]
 
     
     def aoc(self,x,today):
