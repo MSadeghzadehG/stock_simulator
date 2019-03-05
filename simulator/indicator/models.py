@@ -405,7 +405,7 @@ class Indicator(models.Model):
             return [],[]
 
     
-    def ma(self,days,today):
+    def ma(self,x,today):
         to_buy = []
         to_sell = []
         all_stocks = Stock.objects.all()
@@ -417,17 +417,11 @@ class Indicator(models.Model):
             if stock_records.filter(date=str(today)).exists():
                 today_index = list(stock_records.values_list('date',flat=True)).index(str(today))
                 for day in x:
-                    day_range_prices = close_prices[:today_index+day]
+                    day_range_prices = close_prices[today_index:today_index+day]
                     to_check = []
                     for i in day_range_prices:
                         to_check.append(float(i))
-                    div = 1
-                    weighted_avg.append(0)
-                    for i in range(len(to_check)):
-                        # print((len(to_check)-i))
-                        weighted_avg[x.index(day)] += (len(to_check)-i)*to_check[i]
-                        div += (len(to_check)-i)
-                    weighted_avg[x.index(day)] /= div
+                    weighted_avg.append(sum(to_check)/len(to_check))
                 increase_check = True
                 decrease_check = True
                 # print(weighted_avg)
