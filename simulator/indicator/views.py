@@ -11,6 +11,7 @@ import requests
 from background_task import background
 
 
+
 class IndicatorForm(forms.Form):
 
     name = forms.CharField(max_length=100)
@@ -26,8 +27,7 @@ class IndicatorForm(forms.Form):
         widget=forms.DateInput(attrs={
             'class': 'datepicker'
         })
-    )
-    
+    )    
 
 
 class EmailForm(forms.Form):
@@ -63,11 +63,15 @@ class EmailForm(forms.Form):
 #         return HttpResponseRedirect('/email/')  
 
 
+def datetiem_to_dateint(time):
+    return int(''.join(map(str, str(time.date()).split('-'))))
+
+
 @background(schedule=60)
 def update_indicators():
     indicators = Indicator.objects.all()
     # print('here')
-    today = int(''.join(map(str, str(date.today()).split('-'))))
+    today = datetiem_to_dateint(datetime.now())
     print(today)
     for indicator in indicators:
         indicator.update(today=20190210)
@@ -112,7 +116,7 @@ def boughts_table(request,name):
 def indicators_table(request):
     # print(len(Indicator.objects.all()))
     indicators = Indicator.objects.defer('bought')
-    # print(indicators[0].bought)
+    print(indicators[0].bought)
     # update_indicators(schedule=60)#,repeat_until=None)
     # update_indicators(serializers.serialize("python",indicators),repeat=1,repeat_until=None)
     template = loader.get_template('indicator/indicators.html')
@@ -147,9 +151,7 @@ def delete_indicator(request,name):
 def update_indicator(request,name):
     indicator = Indicator.objects.all().get(name=name)
     print(indicator)
-    today = int(''.join(map(str, str(date.today()).split('-'))))
-    print(today)
-    indicator.update_control(20181130,20181230)
+    indicator.update_control(datetiem_to_dateint(indicator.start_time),datetiem_to_dateint(indicator.end_time))
     return redirect('/indicators')
 
 
