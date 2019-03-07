@@ -140,7 +140,8 @@ class Bought_stock(models.Model):
 class Indicator(models.Model):
     bought = models.ManyToManyField(Bought_stock)
     name = models.CharField(max_length=300,unique = True)
-    start_time = models.DateTimeField(auto_now_add=True)
+    start_time = models.DateTimeField(auto_now_add=False)
+    end_time = models.DateTimeField(auto_now_add=False)
     algorithm = models.CharField(max_length=300)
     paid = models.FloatField(default=0)
     bought_stocks_value = models.FloatField(default=0)

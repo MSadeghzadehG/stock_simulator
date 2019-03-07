@@ -5,26 +5,24 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core import serializers
 from django.template import loader
 from datetime import datetime,date
-import os,datetime
+import os
 from django import forms
 import requests
 from background_task import background
 
 
 class IndicatorForm(forms.Form):
-    
-    
-    
+
     name = forms.CharField(max_length=100)
     algorithm = forms.CharField(max_length=200)
     start_date = forms.DateField(
-        input_formats=['%d/%m/%Y'],
+        input_formats=['%m/%d/%Y'],
         widget=forms.DateInput(attrs={
             'class': 'datepicker'
         })
     )
     end_date = forms.DateField(
-        input_formats=['%d/%m/%Y'],
+        input_formats=['%m/%d/%Y'],
         widget=forms.DateInput(attrs={
             'class': 'datepicker'
         })
@@ -128,7 +126,9 @@ def add_indicator(request):
     form = IndicatorForm(request.POST)
     # check whether it's valid:
     if form.is_valid():
-        new_indicator = Indicator(name=form.cleaned_data['name'],algorithm=form.cleaned_data['algorithm'])
+        start_time = datetime.combine(form.cleaned_data['start_date'],datetime.now().time())
+        end_time = datetime.combine(form.cleaned_data['end_date'],datetime.now().time())
+        new_indicator = Indicator(name=form.cleaned_data['name'],algorithm=form.cleaned_data['algorithm'],start_time=start_time,end_time=end_time)
         new_indicator.save()
     else:
         print('invalid form')
@@ -159,7 +159,7 @@ def delete_database(request):
     # Indicator.objects.all().delete()
     # for o in Indicator.objects.all():
     #     o.mydelete()
-    # print(len(Indicator.objects.all()))
+    print(len(Indicator.objects.all()))
     Bought_stock.objects.all().delete()
     print(len(Bought_stock.objects.all()))
     return HttpResponse('deleted')
