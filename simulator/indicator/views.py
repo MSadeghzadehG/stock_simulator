@@ -12,9 +12,24 @@ from background_task import background
 
 
 class IndicatorForm(forms.Form):
+    
+    
+    
     name = forms.CharField(max_length=100)
     algorithm = forms.CharField(max_length=200)
-    days = forms.CheckboxInput()
+    start_date = forms.DateField(
+        input_formats=['%d/%m/%Y'],
+        widget=forms.DateInput(attrs={
+            'class': 'datepicker'
+        })
+    )
+    end_date = forms.DateField(
+        input_formats=['%d/%m/%Y'],
+        widget=forms.DateInput(attrs={
+            'class': 'datepicker'
+        })
+    )
+    
 
 
 class EmailForm(forms.Form):
@@ -115,6 +130,8 @@ def add_indicator(request):
     if form.is_valid():
         new_indicator = Indicator(name=form.cleaned_data['name'],algorithm=form.cleaned_data['algorithm'])
         new_indicator.save()
+    else:
+        print('invalid form')
     return redirect('/indicators')
 
 
