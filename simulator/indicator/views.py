@@ -174,6 +174,7 @@ def update_stocks_today():
     print(len(Stock.objects.all()))
     stocks_list = r.text.split('@')[2].split(';')
     # print(stocks_list)
+    today = datetiem_to_dateint(datetime.now())
     for i in stocks_list:
         # print(i.split(',')[:23])
         seprated = i.split(',')[:23]
@@ -189,6 +190,13 @@ def update_stocks_today():
         except ObjectDoesNotExist:
             print('new'+str(new_entry))
             new_entry.save()       
+        # try:
+        #     found = Record.objects.get(stock=i,date = today)
+        # except:
+        #     new_record = Record(stock=stock,date=today,first=stock.avalin,high=stock.baze_rooz_ziad,low=stock.baze_rooz_kam,close=stock.payani,\
+        #             value=stock.arzesh_moamelat,vol=stock.hajm_moamelat,openint=stock.tedad_moamelat,per='D',openp=stock.dirooz,last=stock.akharin_moamele)
+        #     print('new',new_record,)
+        #     new_record.save()
     print(len(Stock.objects.all()))
     # print([field.name for field in Stock._meta.get_fields()])
 
@@ -224,8 +232,7 @@ def update_stock_history(stock):
             # for attr, value in found.__dict__.items():
             #     print(attr, value)
             # input()
-            break
-            # print('here')
+            # break     # CHECKOUT THIS SHOULD BE COMMENT OR NOT!!
         except ObjectDoesNotExist:
             new_entry = Record.create(stock,*seprated)
             new_entry.save()
@@ -239,6 +246,6 @@ def update(request):
     update_stocks_today()
     all_stock = Stock.objects.all()
     for i in all_stock:
-        update_stock_history(i)
+        # update_stock_history(i)
         print(list(all_stock).index(i))
     return redirect('/stocks')

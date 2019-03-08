@@ -508,13 +508,25 @@ class Indicator(models.Model):
     def update_today(self):
         today = int(''.join(map(str, str(date.today()).split('-'))))
         print(today)
-        for stock in self.bought.all():
-            if not Record.objects.filter(stock=stock,date=today).exists():
-                today_record = Record(stock=stock,date=today,first=stock.avalin,high=stock.baze_rooz_ziad,low=stock.baze_rooz_kam,close=stock.akharin_moamele,\
-                    value=stock.arzesh_moamelat,vol=stock.hajm_moamelat,openint=0,per='d',openp=0,last=stock.payani)
-                
-                pass
+        for bought in self.bought.all():
+            stock = bought.stock
+            # print(type(Record.objects.all()[0].stock))
+            # print(type(bought.stock))
+            print((Record.objects.get(stock=stock,date=today-2)))
 
+            # try:
+            #     found = Record.objects.get(stock=stock.tmc_id,date=today)
+            #     found = Record(stock=stock,date=today,first=stock.avalin,high=stock.baze_rooz_ziad,low=stock.baze_rooz_kam,close=stock.payani,\
+            #         value=stock.arzesh_moamelat,vol=stock.hajm_moamelat,openint=stock.tedad_moamelat,per='D',openp=stock.dirooz,last=stock.akharin_moamele)
+            #     # print('found',found,today)
+            #     found.save()
+            # except:
+            #     new_record = Record(stock=stock,date=today,first=stock.avalin,high=stock.baze_rooz_ziad,low=stock.baze_rooz_kam,close=stock.payani,\
+            #         value=stock.arzesh_moamelat,vol=stock.hajm_moamelat,openint=stock.tedad_moamelat,per='D',openp=stock.dirooz,last=stock.akharin_moamele)
+            #     print('new',new_record,today)
+            #     new_record.save()
+            #     pass
+            
 
     def update(self,today):
         self.update_profit(today)
