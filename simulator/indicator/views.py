@@ -67,16 +67,13 @@ def datetiem_to_dateint(time):
     return int(''.join(map(str, str(time.date()).split('-'))))
 
 
-@background(schedule=60)
+# @background(schedule=60)
 def update_indicators():
     indicators = Indicator.objects.all()
-    # print('here')
-    today = datetiem_to_dateint(datetime.now())
-    print(today)
+    print('here')
     for indicator in indicators:
-        indicator.update(today=20190210)
+        indicator.update_control(datetiem_to_dateint(indicator.start_time),datetiem_to_dateint(indicator.end_time))
     print('updated')
-    print(datetime.datetime.now())
 
 
 def home(request):
@@ -151,7 +148,8 @@ def delete_indicator(request,name):
 def update_indicator(request,name):
     indicator = Indicator.objects.all().get(name=name)
     print(indicator)
-    indicator.update_control(datetiem_to_dateint(indicator.start_time),datetiem_to_dateint(indicator.end_time))
+    indicator.update_today()
+    # indicator.update_control(datetiem_to_dateint(indicator.start_time),datetiem_to_dateint(indicator.end_time))
     return redirect('/indicators')
 
 
@@ -162,19 +160,17 @@ def delete_database(request):
     # for o in Indicator.objects.all():
     #     o.mydelete()
     print(len(Indicator.objects.all()))
-    Bought_stock.objects.all().delete()
-    print(len(Bought_stock.objects.all()))
+    print(len(Record.objects.all()))
+    # Record.objects.filter(date=20190308).delete()
+    print(len(Record.objects.all()))
     return HttpResponse('deleted')
 
 
-def update(request):
-    get_data_url = 'http://tsetmc.ir/tsev2/data/Export-txt.aspx?t=i&a=1&b=0&i='
-    get_data_url2 = 'http://members.tsetmc.com/tsev2/data/InstTradeHistory.aspx?i='
-    get_data_url3 = '&Top=999999&A=0'
+def update_stocks_today():
     r = requests.get('http://www.tsetmc.com/tsev2/data/MarketWatchInit.aspx?h=0&r=0')
     # headers = ['id','?','namad','nam','?','avalin','payani','akharin moamele','tedad moamelat','hajm moamelat','arzesh mamelat','baze rooz kam','baze rooz ziad','dirooz','eps','?','?','?','?','mojaz ziad','mojaz kam','?','?']
     # print(len(r.text.split('@')[2].split(';')))
-    print(len(Record.objects.all()))
+    # print(len(Record.objects.all()))
     print(len(Stock.objects.all()))
     stocks_list = r.text.split('@')[2].split(';')
     # print(stocks_list)
@@ -195,44 +191,54 @@ def update(request):
             new_entry.save()       
     print(len(Stock.objects.all()))
     # print([field.name for field in Stock._meta.get_fields()])
-    # pdf_headers = ['Ticker','date','first','high','low','close','value','vol','openint','per','open','last']
+
+
+def update_stock_history(stock):
+    get_data_url = 'http://tsetmc.ir/tsev2/data/Export-txt.aspx?t=i&a=1&b=0&i='
+    get_data_url2 = 'http://members.tsetmc.com/tsev2/data/InstTradeHistory.aspx?i='
+    get_data_url3 = '&Top=999999&A=0'
+    check = False
+    r = requests.get(get_data_url+stock.getID())
+    while r.status_code==500:
+        if check:
+            # r = requests.get(get_data_url2+stock.getID()+get_data_url3)
+            r = requests.get(get_data_url+stock.getID())
+            check = False
+        else:
+            r = requests.get(get_data_url+stock.getID())
+            check = True
+    # print(r.text)
+    rr = r.text.split('\r\n')
+    # print(rr)
+    if len(rr)>0:
+        del rr[-1]
+    if len(rr)>0:
+        del rr[0]
+    # print(rr)
+    for j in rr:
+        seprated = j.split(',')
+        # print(seprated[1])
+        try:
+            found = Record.objects.get(stock = stock, date = seprated[1])
+            print('found'+str(found))
+            # for attr, value in found.__dict__.items():
+            #     print(attr, value)
+            # input()
+            break
+            # print('here')
+        except ObjectDoesNotExist:
+            new_entry = Record.create(stock,*seprated)
+            new_entry.save()
+            print('new'+str(new_entry))
+    # print(len(Record.objects.all()))
+    # headers = ['Ticker','date','first','high','low','close','value','vol','openint','per','open','last']
     # print([field.name for field in Record._meta.get_fields()])
+    
+
+def update(request):
+    update_stocks_today()
     all_stock = Stock.objects.all()
     for i in all_stock:
-        # print(i)
-        check = False
-        r = requests.get(get_data_url+i.getID())
-        while r.status_code==500:
-            if check:
-                # r = requests.get(get_data_url2+i.getID()+get_data_url3)
-                r = requests.get(get_data_url+i.getID())
-                check = False
-            else:
-                r = requests.get(get_data_url+i.getID())
-                check = True
-        # print(r.text)
-        rr = r.text.split('\r\n')
-        # print(rr)
-        if len(rr)>0:
-            del rr[-1]
-        if len(rr)>0:
-            del rr[0]
-        # print(rr)
-        for j in rr:
-            seprated = j.split(',')
-            # print(seprated[1])
-            try:
-                found = Record.objects.get(stock = i, date = seprated[1])
-                print('found'+str(found))
-                # for attr, value in found.__dict__.items():
-                #     print(attr, value)
-                # input()
-                break
-                # print('here')
-            except ObjectDoesNotExist:
-                new_entry = Record.create(i,*seprated)
-                new_entry.save()
-                print('new'+str(new_entry))
-        # print(len(Record.objects.all()))
+        update_stock_history(i)
         print(list(all_stock).index(i))
     return redirect('/stocks')
