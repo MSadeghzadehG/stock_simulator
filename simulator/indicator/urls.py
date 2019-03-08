@@ -1,12 +1,12 @@
 from django.urls import path
 from . import views
 from .views import IndicatorForm
-from django.conf.urls import patterns, url, include
+# from django.conf.urls import patterns, url, include
 
 
 urlpatterns = [
     path('', views.home, name='homepage'),
-    path('update', views.update, name='update'),
+    path('update', views.update_request, name='update_request'),
     path('delete', views.delete_database, name='dalete'),
     path('stocks', views.stocks_table, name='show_stocks'),
     path('stocks/<id>/', views.records_table, name='show_records'),

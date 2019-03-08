@@ -69,6 +69,7 @@ def datetiem_to_dateint(time):
 
 # @background(schedule=60)
 def update_indicators():
+    update()
     indicators = Indicator.objects.all()
     print('here')
     for indicator in indicators:
@@ -148,8 +149,9 @@ def delete_indicator(request,name):
 def update_indicator(request,name):
     indicator = Indicator.objects.all().get(name=name)
     print(indicator)
-    indicator.update_today()
-    # indicator.update_control(datetiem_to_dateint(indicator.start_time),datetiem_to_dateint(indicator.end_time))
+    # for bought in indicator.bought:
+    #     update_stock_history(bought.stock)
+    indicator.update_control(datetiem_to_dateint(indicator.start_time),datetiem_to_dateint(indicator.end_time))
     return redirect('/indicators')
 
 
@@ -242,10 +244,14 @@ def update_stock_history(stock):
     # print([field.name for field in Record._meta.get_fields()])
     
 
-def update(request):
+def update():
     update_stocks_today()
     all_stock = Stock.objects.all()
     for i in all_stock:
         # update_stock_history(i)
         print(list(all_stock).index(i))
+
+
+def update_request(request):
+    update()
     return redirect('/stocks')
