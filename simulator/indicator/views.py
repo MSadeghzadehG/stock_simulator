@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect
-from django.http import HttpResponse
+from django.http import HttpResponse,JsonResponse
 from indicator.models import Stock,Record,Indicator,Bought_stock
 from django.core.exceptions import ObjectDoesNotExist
 from django.core import serializers
@@ -166,6 +166,19 @@ def delete_database(request):
     # Record.objects.filter(date=20190308).delete()
     print(len(Record.objects.all()))
     return HttpResponse('deleted')
+
+
+def get_indicator(request):
+    names = Indicator.objects.all().values_list('name',flat=True)
+    indicators = {}
+    for name in names:
+        obj = {}
+        for item in Indicator._meta.get_fields():
+            if not (item.name == 'bought' or item.name == 'id'):
+                obj[item.name] = list(Indicator.objects.filter(name=name).values_list(item.name,flat=True))[0]
+        indicators[name] = obj
+    # obj = serializers.serialize("json",indicators)
+    return JsonResponse(indicators)
 
 
 def update_stocks_today():

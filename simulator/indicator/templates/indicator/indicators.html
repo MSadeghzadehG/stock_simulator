@@ -8,6 +8,8 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
 
+    
+
     <title>Hello, world!</title>
   </head>
   <body>
@@ -16,7 +18,7 @@
             <div class="col-md-12">
                     <div class="table-responsive"></div>
                     <a href="/"><h3>Home</h3></a>
-                    <table class="table table-striped table-bordered table-hover">
+                    <table class="table table-striped table-bordered table-hover" id="indicator-table">
                             <thead>
                                 <tr>
                                     <th scope="col">Stocks List</th>
@@ -26,81 +28,9 @@
                                     {% for header in headers%}
                                         <th scope="col">{{header}}</th>
                                     {%endfor%}
-                                    <!-- <th scope="col">tmc_id</th>
-                                    <th scope="col">q1</th>
-                                    <th scope="col">namad</th>
-                                    <th scope="col">nam</th>
-                                    <th scope="col">q2</th>
-                                    <th scope="col">avalin</th>
-                                    <th scope="col">payani</th>
-                                    <th scope="col">akharin_moamele</th>
-                                    <th scope="col">tedad_moamelat</th>
-                                    <th scope="col">hajm_moamelat</th>
-                                    <th scope="col">arzesh_moamelat</th>
-                                    <th scope="col">baze_rooz_kam</th>
-                                    <th scope="col">baze_rooz_ziad</th>
-                                    <th scope="col">dirooz</th>
-                                    <th scope="col">eps</th>
-                                    <th scope="col">q3</th>
-                                    <th scope="col">q4</th>
-                                    <th scope="col">q5</th>
-                                    <th scope="col">q6</th>
-                                    <th scope="col">mojaz_ziad</th>
-                                    <th scope="col">mojaz_kam</th>
-                                    <th scope="col">q7</th>
-                                    <th scope="col">q8</th> -->
                                 </tr>
                             </thead>
                             <tbody >
-                                {%for indicator in indicators%}
-                                    <tr>
-                                        <th>
-                                            <form action="/indicators/{{indicator.fields.name}}/" method="POST">
-                                                {% csrf_token %}                                                      
-                                                <input type="submit" value="Stocks list">
-                                            </form>
-                                        </th>
-                                        <th>
-                                            <form action="/indicators/{{indicator.fields.name}}/delete" method="POST">
-                                                {% csrf_token %}                                                      
-                                                <input type="submit" value="delete">
-                                            </form>
-                                        </th>
-                                        <th>
-                                            <form action="/indicators/{{indicator.fields.name}}/update" method="POST">
-                                                {% csrf_token %}                                                      
-                                                <input type="submit" value="update">
-                                            </form>
-                                        </th>
-                                        <!-- <th>{{ stock.id }}</th>
-                                        <th>{{ stock.tmc_id }}</th>
-                                        <th>{{ stock.q1 }}</th>
-                                        <th>{{ stock.namad }}</th>
-                                        <th>{{ stock.nam }}</th>
-                                        <th>{{ stock.q2 }}</th>
-                                        <th>{{ stock.avalin }}</th>
-                                        <th>{{ stock.payani }}</th>
-                                        <th>{{ stock.akharin_moamele }}</th>
-                                        <th>{{ stock.tedad_moamelat }}</th>
-                                        <th>{{ stock.hajm_moamelat }}</th>
-                                        <th>{{ stock.arzesh_moamelat }}</th>
-                                        <th>{{ stock.baze_rooz_kam }}</th>
-                                        <th>{{ stock.baze_rooz_ziad }}</th>
-                                        <th>{{ stock.dirooz }}</th>
-                                        <th>{{ stock.eps }}</th>
-                                        <th>{{ stock.q3 }}</th>
-                                        <th>{{ stock.q4 }}</th>
-                                        <th>{{ stock.q5 }}</th>
-                                        <th>{{ stock.q6 }}</th>
-                                        <th>{{ stock.mojaz_ziad }}</th>
-                                        <th>{{ stock.mojaz_kam }}</th>
-                                        <th>{{ stock.q7 }}</th>
-                                        <th>{{ stock.q8 }}</th> -->
-                                        {% for i,j in indicator.fields.items %}
-                                            <th>{{j}}</th>
-                                        {% endfor %}
-                                    </tr>
-                                {%endfor%}
                             </tbody>
                     </table>
                </div>
@@ -110,10 +40,52 @@
        </div>
     </div>  
 
+
+
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
-  </body>
+
+
+    <script>
+            $.ajax({
+            url : 'http://localhost:8000/get_indicator',
+            type : 'GET',
+            success : function(data) {              
+                // alert('Data: '+data);
+                Object.keys(data).forEach(function(name) {
+                    $("#indicator-table > tbody").append('<tr></tr>');
+                    $("#indicator-table > tbody").children().last().append('<td>\
+                                            <form action="/indicators/{{indicator.fields.name}}/" method="POST">\
+                                                {% csrf_token %}\
+                                                <input type="submit" value="Stocks list">\
+                                            </form>\
+                                        </td>\
+                                        <td>\
+                                            <form action="/indicators/{{indicator.fields.name}}/delete" method="POST">\
+                                                {% csrf_token %} \
+                                                <input type="submit" value="delete">\
+                                            </form>\
+                                        </td>\
+                                        <td>\
+                                            <form action="/indicators/{{indicator.fields.name}}/update" method="POST">\
+                                                {% csrf_token %}\
+                                                <input type="submit" value="update">\
+                                            </form>\
+                                        </td>');
+                    Object.keys(data[name]).forEach(function(key) {
+                        // console.log(key, data[name][key]);
+                        $("#indicator-table > tbody").children().last().append('<td>' + data[name][key] + '</td>');
+                    });
+                });
+            },
+            error : function(request,error)
+            {
+                alert("Request: "+JSON.stringify(request));
+            }
+            });
+            </script>
+</body>
 </html>
