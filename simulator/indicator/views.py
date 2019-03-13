@@ -113,12 +113,12 @@ def boughts_table(request,name):
 
 def indicators_table(request):
     # print(len(Indicator.objects.all()))
-    indicators = Indicator.objects.defer('bought')
-    print(indicators[0].bought)
+    # indicators = Indicator.objects.defer('bought')
+    # print(indicators[0].bought)
     # update_indicators(schedule=60)#,repeat_until=None)
     # update_indicators(serializers.serialize("python",indicators),repeat=1,repeat_until=None)
     template = loader.get_template('indicator/indicators.html')
-    context = { 'indicators': serializers.serialize("python",indicators) , 'headers':[field.name for field in Indicator._meta.get_fields()][1:-1]}
+    context = {'headers':[field.name for field in Indicator._meta.get_fields()][1:-1]}
     return HttpResponse(template.render(context, request))
 
 

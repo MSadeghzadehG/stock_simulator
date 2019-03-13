@@ -48,9 +48,21 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
 
-
-    <script>
-            $.ajax({
+    {% csrf_token %}
+    <script type="text/javascript">
+        var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+        function csrfSafeMethod(method) {
+            // these HTTP methods do not require CSRF protection
+            return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+        }
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+        $.ajax({
             url : 'http://localhost:8000/get_indicator',
             type : 'GET',
             success : function(data) {              
@@ -58,26 +70,39 @@
                 Object.keys(data).forEach(function(name) {
                     $("#indicator-table > tbody").append('<tr></tr>');
                     $("#indicator-table > tbody").children().last().append('<td>\
-                                            <form action="/indicators/{{indicator.fields.name}}/" method="POST">\
+                                            <form action="/indicators/'+name+'/" method="POST">\
                                                 {% csrf_token %}\
                                                 <input type="submit" value="Stocks list">\
                                             </form>\
                                         </td>\
                                         <td>\
-                                            <form action="/indicators/{{indicator.fields.name}}/delete" method="POST">\
-                                                {% csrf_token %} \
+                                            <form action="/indicators/'+name+'/delete" method="POST">\
+                                                {% csrf_token %}\
                                                 <input type="submit" value="delete">\
                                             </form>\
                                         </td>\
                                         <td>\
-                                            <form action="/indicators/{{indicator.fields.name}}/update" method="POST">\
-                                                {% csrf_token %}\
-                                                <input type="submit" value="update">\
-                                            </form>\
+                                            <input type="button" value="update" class="indicator-update" id="/indicators/'+name+'/update">\
                                         </td>');
                     Object.keys(data[name]).forEach(function(key) {
                         // console.log(key, data[name][key]);
                         $("#indicator-table > tbody").children().last().append('<td>' + data[name][key] + '</td>');
+                    });
+                    $('.indicator-update').click(function (e) {
+                        e.preventDefault();
+                        console.log('here')
+                        $.ajax({
+                            type: "POST",
+                            url: $(this).attr('id'),
+                            data: "",
+                            // csrfmiddlewaretoken: '{{ csrf_token }}',
+                            success: function(result) {
+                                alert('ok');
+                            },
+                            error: function(result) {
+                                alert('error');
+                            }
+                        });
                     });
                 });
             },
@@ -86,6 +111,7 @@
                 alert("Request: "+JSON.stringify(request));
             }
             });
+            
             </script>
 </body>
 </html>
