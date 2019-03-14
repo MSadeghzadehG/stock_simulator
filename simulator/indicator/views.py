@@ -63,21 +63,21 @@ class EmailForm(forms.Form):
 #         return HttpResponseRedirect('/email/')  
 
 
-def datetiem_to_dateint(time):
-    return int(''.join(map(str, str(time.date()).split('-'))))
-
-
-# @background(schedule=60)
+@background(schedule=10)
 def update_indicators():
-    update()
-    indicators = Indicator.objects.all()
+    # update()
+    # indicators = Indicator.objects.all()
     print('here')
-    for indicator in indicators:
-        indicator.update_control(datetiem_to_dateint(indicator.start_time),datetiem_to_dateint(indicator.end_time))
-    print('updated')
+    # for indicator in indicators:
+    #     indicator.update_control(\
+    #         Indicator.datetime_to_dateint(Indicator.start_time),\
+    #         Indicator.datetime_to_dateint(Indicator.end_time)\
+    #     )
+    # print('updated')
 
 
 def home(request):
+    update_indicators(repeat=1)
     form = IndicatorForm(auto_id=False)
     # print(Bought_stock.objects.all())
     template = loader.get_template('indicator/home.html')
@@ -106,19 +106,14 @@ def boughts_table(request,name):
     template = loader.get_template('indicator/bought.html')
     indicator = Indicator.objects.get(name=name)
     # indicator.update_profit()
-    boughts = indicator.bought.all().order_by('profit').reverse()
-    context = { 'stocks': serializers.serialize("python",boughts) , 'headers':[field.name for field in Bought_stock._meta.get_fields()][2:]}
+    boughts = indicator.trade_log.all().order_by('profit').reverse()
+    context = { 'stocks': serializers.serialize("python",boughts) , 'headers':[field.name for field in Bought_stock._meta.get_fields()][3:]}
     return HttpResponse(template.render(context, request))
 
 
 def indicators_table(request):
-    # print(len(Indicator.objects.all()))
-    # indicators = Indicator.objects.defer('bought')
-    # print(indicators[0].bought)
-    # update_indicators(schedule=60)#,repeat_until=None)
-    # update_indicators(serializers.serialize("python",indicators),repeat=1,repeat_until=None)
     template = loader.get_template('indicator/indicators.html')
-    context = {'headers':[field.name for field in Indicator._meta.get_fields()][1:-1]}
+    context = {'headers':[field.name for field in Indicator._meta.get_fields()][1:-2]}
     return HttpResponse(template.render(context, request))
 
 
@@ -128,9 +123,12 @@ def add_indicator(request):
     form = IndicatorForm(request.POST)
     # check whether it's valid:
     if form.is_valid():
-        start_time = datetime.combine(form.cleaned_data['start_date'],datetime.now().time())
-        end_time = datetime.combine(form.cleaned_data['end_date'],datetime.now().time())
-        new_indicator = Indicator(name=form.cleaned_data['name'],algorithm=form.cleaned_data['algorithm'],start_time=start_time,end_time=end_time)
+        start_time = Indicator.add_time_to_date(form.cleaned_data['start_date'])
+        end_time = Indicator.add_time_to_date(form.cleaned_data['end_date'])
+        new_indicator = Indicator(name=form.cleaned_data['name'],\
+            algorithm=form.cleaned_data['algorithm'],\
+            start_time=start_time,end_time=end_time\
+        )
         new_indicator.save()
     else:
         print('invalid form')
@@ -151,7 +149,10 @@ def update_indicator(request,name):
     print(indicator)
     # for bought in indicator.bought:
     #     update_stock_history(bought.stock)
-    indicator.update_control(datetiem_to_dateint(indicator.start_time),datetiem_to_dateint(indicator.end_time))
+    indicator.update_control(\
+        Indicator.datetime_to_dateint(indicator.start_time),\
+        Indicator.datetime_to_dateint(indicator.end_time)\
+    )
     return redirect('/indicators')
 
 
@@ -159,12 +160,12 @@ def delete_database(request):
     # Record.objects.all().delete()
     # Stock.objects.all().delete()
     # Indicator.objects.all().delete()
-    # for o in Indicator.objects.all():
-    #     o.mydelete()
-    print(len(Indicator.objects.all()))
-    print(len(Record.objects.all()))
+    for o in Indicator.objects.all():
+        o.mydelete()
+    print(len(Bought_stock.objects.all()))
+    # print(len(Record.objects.all()))
     # Record.objects.filter(date=20190308).delete()
-    print(len(Record.objects.all()))
+    # print(len(Record.objects.all()))
     return HttpResponse('deleted')
 
 
@@ -174,7 +175,7 @@ def get_indicator(request):
     for name in names:
         obj = {}
         for item in Indicator._meta.get_fields():
-            if not (item.name == 'bought' or item.name == 'id'):
+            if not (item.name == 'bought' or item.name == 'id' or item.name=='trade_log'):
                 obj[item.name] = list(Indicator.objects.filter(name=name).values_list(item.name,flat=True))[0]
         indicators[name] = obj
     # obj = serializers.serialize("json",indicators)
@@ -189,7 +190,7 @@ def update_stocks_today():
     print(len(Stock.objects.all()))
     stocks_list = r.text.split('@')[2].split(';')
     # print(stocks_list)
-    today = datetiem_to_dateint(datetime.now())
+    today = Indicator.datetime_to_dateint(datetime.now())
     for i in stocks_list:
         # print(i.split(',')[:23])
         seprated = i.split(',')[:23]
@@ -246,8 +247,7 @@ def update_stock_history(stock):
             print('found'+str(found))
             # for attr, value in found.__dict__.items():
             #     print(attr, value)
-            # input()
-            # break     # CHECKOUT THIS SHOULD BE COMMENT OR NOT!!
+            break     # CHECKOUT THIS SHOULD BE COMMENT OR NOT!!
         except ObjectDoesNotExist:
             new_entry = Record.create(stock,*seprated)
             new_entry.save()
@@ -261,7 +261,7 @@ def update():
     update_stocks_today()
     all_stock = Stock.objects.all()
     for i in all_stock:
-        # update_stock_history(i)
+        update_stock_history(i)
         print(list(all_stock).index(i))
 
 

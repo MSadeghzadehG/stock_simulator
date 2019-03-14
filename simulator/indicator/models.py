@@ -9,6 +9,10 @@ DEFAULT_BUY = 1000000
 BUY_FEE = 0.00486
 SELL_FEE = 0.01029
 
+
+
+
+
 class Stock(models.Model):
     # id = models.BigIntegerField(unique=True, primary_key=True)
     tmc_id = models.CharField(max_length=300,unique=True)
@@ -87,7 +91,7 @@ class Record(models.Model):
     last = models.CharField(max_length=300)
 
     def __str__(self):
-        return str(self.stock)+ ' ' + str(self.close) + ' ' + str(self.date)
+        return str(self.stock)+ ' ' + str(self.last) + ' ' + str(self.date)
 
     @classmethod
     def create(self,*l):
@@ -109,7 +113,8 @@ class Record(models.Model):
 
 class Bought_stock(models.Model):
     stock = models.ForeignKey(Stock,on_delete=models.DO_NOTHING)
-    time = models.DateTimeField(auto_now_add=True)
+    buy_time = models.DateTimeField(auto_now_add=False)
+    sell_time = models.DateTimeField(null=True,default=None)
     volume = models.FloatField(default=0)
     purchase_price = models.FloatField(default=0)
     current_price = models.FloatField(default=0)
@@ -121,7 +126,7 @@ class Bought_stock(models.Model):
         if now.exists():
             # print('ok')
             now = now[0]
-            self.current_price = float(now.close)
+            self.current_price = float(now.last)
             self.profit = (float(self.current_price / self.purchase_price) - 1 ) * 100
             self.save()
         else:
@@ -130,7 +135,7 @@ class Bought_stock(models.Model):
 
 
     def mydelete(self):
-        Bought_stock.objects.get(stock=self.stock,time=self.time).delete()
+        Bought_stock.objects.get(stock=self.stock,buy_time=self.buy_time).delete()
 
     def __str__(self):
         return self.stock.__str__() + ' - ' + str(self.profit)
@@ -138,7 +143,7 @@ class Bought_stock(models.Model):
 
 
 class Indicator(models.Model):
-    bought = models.ManyToManyField(Bought_stock)
+    bought = models.ManyToManyField(Bought_stock, related_name='bought')
     name = models.CharField(max_length=300,unique = True)
     start_time = models.DateTimeField(auto_now_add=False)
     end_time = models.DateTimeField(auto_now_add=False)
@@ -148,6 +153,24 @@ class Indicator(models.Model):
     gain = models.FloatField(default=0)
     profit = models.FloatField(default=0)
     last_update = models.DateTimeField(auto_now_add=True)
+    trade_log = models.ManyToManyField(Bought_stock, related_name='trade_log')
+
+
+    def datetime_to_dateint(time):
+        print(time)
+        o= int(''.join(map(str, str(time.date()).split('-'))))
+        print(o)
+        return o
+
+
+    def add_time_to_date(date):
+        return datetime.combine(date,datetime.now().time())
+        
+
+    def dateint_to_datetime(date):
+        date = str(date)
+        date = date[0:4]+'-'+date[4:6]+'-'+date[6:]
+        return datetime.strptime(date , '%Y-%m-%d').date()
 
 
     def ema(self,x,today):
@@ -158,11 +181,11 @@ class Indicator(models.Model):
         for stock in all_stocks:
             weighted_avg = []
             stock_records = Record.objects.filter(stock=stock).order_by('date')
-            close_prices = list(stock_records.values_list('close',flat=True))
+            last_prices = list(stock_records.values_list('last',flat=True))
             if stock_records.filter(date=str(today)).exists():
                 today_index = list(stock_records.values_list('date',flat=True)).index(str(today))
                 for day in x:
-                    day_range_prices = close_prices[today_index:today_index+day]
+                    day_range_prices = last_prices[today_index:today_index+day]
                     to_check = []
                     for i in day_range_prices:
                         to_check.append(float(i))
@@ -183,7 +206,7 @@ class Indicator(models.Model):
                         decrease_check = False
                 if len(x)==1:
                     # print(weighted_avg[0])
-                    if weighted_avg[0]>float(stock_records.get(date=today).close):
+                    if weighted_avg[0]>float(stock_records.get(date=today).last):
                         to_buy.append(stock.getID())
                         is_valid = True
                 else:
@@ -222,7 +245,7 @@ class Indicator(models.Model):
                     for i in range(x):
                         now = stock_records.get(date=str(days[today_index]))
                         # print(now.high)
-                        dpp = (float(now.high) + float(now.low) + float(now.close)) / 3 * float(now.vol)
+                        dpp = (float(now.high) + float(now.low) + float(now.last)) / 3 * float(now.vol)
                         # print(dpp)
                         dpps.append(dpp)
                         today_index += 1
@@ -284,7 +307,7 @@ class Indicator(models.Model):
                         today_index += 1                            
                     for i in range(x):
                         now = to_use_records[i]
-                        k = (float(now.close) - l) * 100 / (h-l)
+                        k = (float(now.last) - l) * 100 / (h-l)
                         ks.append(k)
                         today_index += 1
                     d = sum(ks[:3])/3                    
@@ -323,9 +346,9 @@ class Indicator(models.Model):
                 try:
                     temp = days[today_index+7*x-1]
                     now = stock_records.get(date=str(days[today_index]))
-                    l = float(now.close)
+                    l = float(now.last)
                     h = 0
-                    c = float(now.close)
+                    c = float(now.last)
                     today_index = 1
                     for i in range(1,7*x):
                         now = stock_records.get(date=str(days[today_index]))
@@ -373,7 +396,7 @@ class Indicator(models.Model):
                     decreasing_indexes = []
                     for i in range(x):
                         now = stock_records.get(date=str(days[today_index]))
-                        prices.append(float(now.close))
+                        prices.append(float(now.last))
                         today_index += 1
                     for i in range(x-1):
                         # print(dpps[i+1])
@@ -414,11 +437,11 @@ class Indicator(models.Model):
         for stock in all_stocks:
             weighted_avg = []
             stock_records = Record.objects.filter(stock=stock).order_by('date')
-            close_prices = list(stock_records.values_list('close',flat=True))
+            last_prices = list(stock_records.values_list('last',flat=True))
             if stock_records.filter(date=str(today)).exists():
                 today_index = list(stock_records.values_list('date',flat=True)).index(str(today))
                 for day in x:
-                    day_range_prices = close_prices[today_index:today_index+day]
+                    day_range_prices = laste_prices[today_index:today_index+day]
                     to_check = []
                     for i in day_range_prices:
                         to_check.append(float(i))
@@ -433,7 +456,7 @@ class Indicator(models.Model):
                         decrease_check = False
                 if len(x)==1:
                     # print(weighted_avg[0])
-                    if weighted_avg[0]>float(stock_records.get(date=today).close):
+                    if weighted_avg[0]>float(stock_records.get(date=today).last):
                         to_buy.append(stock.getID())
                         is_valid = True
                 else:
@@ -465,8 +488,8 @@ class Indicator(models.Model):
                 # print(stock)
                 try:
                     # print(today_index)
-                    now = float(stock_records.filter(date=str(days[today_index]))[0].close)
-                    last = float(stock_records.filter(date=str(days[today_index+x-1]))[0].close)
+                    now = float(stock_records.filter(date=str(days[today_index]))[0].last)
+                    last = float(stock_records.filter(date=str(days[today_index+x-1]))[0].last)
                     if now>last:
                         # print(stock)
                         suggusted.append(stock.tmc_id)
@@ -486,7 +509,6 @@ class Indicator(models.Model):
 
 
     def update_control(self,start_day,end_day):
-        log = []
         today = start_day
         while today<end_day:
             self.update(today)
@@ -496,13 +518,6 @@ class Indicator(models.Model):
             if today%100 == 31:
                 today += 69
             today += 1
-            o = {}
-            for i in Indicator._meta.get_fields():
-                o['date'] = today
-                o[i.name] = getattr(self,i.name)
-            # for i in list(o['bought'].all()):
-            log.append(o)
-        print(log)
 
 
     def update_today(self):
@@ -541,26 +556,36 @@ class Indicator(models.Model):
         for bought in boughts:
             if bought.stock.tmc_id in to_sell:                
                 self.gain += bought.current_price * bought.volume
-                bought.mydelete()
+                # bought.mydelete()
+                # print(len(self.bought.all()))
+                # print(len(self.trade_log.all()))
+                self.bought.remove(bought)
+                # print(len(self.bought.all()))
+                # print(len(self.trade_log.all()))
+                bought.sell_time = Indicator.add_time_to_date(Indicator.dateint_to_datetime(today))
+                bought.save()
                 print('deleted')
+                # input()
         for id in to_buy:
             if int(id) not in list(boughts.values_list('stock', flat=True)):
                 stock = Stock.objects.get(tmc_id=id)
                 price = Record.objects.filter(stock=stock,date=today)
                 # print(stock.akharin_moamele)
                 if price.exists():
-                    price = float(price[0].close)
+                    price = float(price[0].last)
                     volume = math.ceil(DEFAULT_BUY/price)
                     # print(volume,price)
                     bought_stock = Bought_stock(stock=stock,purchase_price=price,current_price=price,volume=volume)
+                    bought_stock.buy_time = Indicator.add_time_to_date(Indicator.dateint_to_datetime(today))
                     self.paid += price * volume
                     print('bought_stock')
                     bought_stock.save()
                     self.bought.add(bought_stock)
+                    self.trade_log.add(bought_stock)
         # print(self.bought.all())
         # print(self.last_update)
         # print(datetime.now())
-        self.last_update = datetime.now(tz=timezone.utc)
+        self.last_update = Indicator.add_time_to_date(Indicator.dateint_to_datetime(today))
         self.save()
         # print(self.last_update)
 
@@ -579,6 +604,8 @@ class Indicator(models.Model):
 
     def mydelete(self):
         for bought in self.bought.all():
+            bought.mydelete()
+        for bought in self.trade_log.all():
             bought.mydelete()
         self.delete()
 
