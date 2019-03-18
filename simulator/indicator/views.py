@@ -4,6 +4,7 @@ from indicator.models import Stock, Record, Indicator, Bought_stock
 from django.core.exceptions import ObjectDoesNotExist
 from django.core import serializers
 from django.template import loader
+from django.utils import timezone
 from datetime import datetime, date
 from django import forms
 import requests
@@ -26,12 +27,15 @@ class IndicatorForm(forms.Form):
         widget=forms.DateInput(attrs={
             'class': 'datepicker'
         })
-    )    
+    )
+    update_daily = forms.BooleanField(required=False)
+
+    # def clean(self):
 
 
 def home(request):
-    update_indicators(repeat=20, repeat_until=None)
-    form = IndicatorForm(auto_id=False)
+    print(datetime.strptime('18/03/2019 05:35', '%d/%m/%Y %H:%M'))
+    # update_indicators(schedule=datetime.strptime('18/03/2019 05:35', '%d/%m/%Y %H:%M'))
     # print(Bought_stock.objects.all())
     template = loader.get_template('indicator/home.html')
     context = {'form': form}
@@ -98,9 +102,12 @@ def add_indicator(request):
             start_time=start_time,
             end_time=end_time
             )
+        if form.cleaned_data['update_daily']:
+            new_indicator.end_time = None
         new_indicator.save()
     else:
         print('invalid form')
+        return redirect('/')
     return redirect('/indicators')
 
 
@@ -115,11 +122,7 @@ def delete_indicator(request, name):
 
 def update_indicator(request, name):
     indicator = Indicator.objects.all().get(name=name)
-    print(indicator)
-    indicator.update_control(
-        Indicator.datetime_to_dateint(indicator.start_time),
-        Indicator.datetime_to_dateint(indicator.end_time)
-    )
+    indicator.update_time_indicator()
     return redirect('/indicators')
 
 

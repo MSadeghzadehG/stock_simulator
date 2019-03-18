@@ -1,5 +1,5 @@
 from django.db import models
-from datetime import datetime,date
+from datetime import datetime, date
 from django.utils import timezone
 import math
 # import json
@@ -8,9 +8,6 @@ import math
 DEFAULT_BUY = 1000000
 BUY_FEE = 0.00486
 SELL_FEE = 0.01029
-
-
-
 
 
 class Stock(models.Model):
@@ -76,7 +73,7 @@ class Stock(models.Model):
 
 
 class Record(models.Model):
-    stock = models.ForeignKey(Stock,on_delete=models.CASCADE)
+    stock = models.ForeignKey(Stock, on_delete=models.CASCADE)
     Ticker = models.CharField(max_length=300)
     date = models.CharField(max_length=300)
     first = models.CharField(max_length=300)
@@ -144,36 +141,32 @@ class Bought_stock(models.Model):
 
 class Indicator(models.Model):
     bought = models.ManyToManyField(Bought_stock, related_name='bought')
-    name = models.CharField(max_length=300,unique = True)
+    name = models.CharField(max_length=300, unique=True)
     start_time = models.DateTimeField(auto_now_add=False)
-    end_time = models.DateTimeField(auto_now_add=False)
+    end_time = models.DateTimeField(auto_now_add=False, null=True)
     algorithm = models.CharField(max_length=300)
     paid = models.FloatField(default=0)
     bought_stocks_value = models.FloatField(default=0)
     gain = models.FloatField(default=0)
     profit = models.FloatField(default=0)
-    last_update = models.DateTimeField(auto_now_add=True)
+    last_update = models.DateTimeField(auto_now_add=False, null=True, default=None)
     trade_log = models.ManyToManyField(Bought_stock, related_name='trade_log')
-
 
     def datetime_to_dateint(time):
         print(time)
-        o= int(''.join(map(str, str(time.date()).split('-'))))
+        o = int(''.join(map(str, str(time.date()).split('-'))))
         print(o)
         return o
 
-
     def add_time_to_date(date):
         return datetime.combine(date,datetime.now().time())
-        
 
     def dateint_to_datetime(date):
         date = str(date)
         date = date[0:4]+'-'+date[4:6]+'-'+date[6:]
         return datetime.strptime(date , '%Y-%m-%d').date()
 
-
-    def ema(self,x,today):
+    def ema(self, x, today):
         to_buy = []
         to_sell = []
         all_stocks = Stock.objects.all()
@@ -221,8 +214,7 @@ class Indicator(models.Model):
         else:
             return [],[]
 
-
-    def mfi(self,x,today):
+    def mfi(self, x, today):
         check = False
         suggusted = []
         all_stocks = Stock.objects.all()
@@ -279,8 +271,7 @@ class Indicator(models.Model):
         else:
             return [],[]
 
-
-    def stockastic(self,x,today):
+    def stockastic(self, x, today):
         check = False
         suggusted = []
         all_stocks = Stock.objects.all()
@@ -328,8 +319,7 @@ class Indicator(models.Model):
         else:
             return [],[]
 
-
-    def weekly_rule(self,x,today):
+    def weekly_rule(self, x, today):
         # print(x)
         to_buy = []
         to_sell = []
@@ -376,8 +366,7 @@ class Indicator(models.Model):
         else:
             return [],[]
 
-
-    def rsi(self,x,today):
+    def rsi(self, x, today):
         check = False
         suggusted = []
         all_stocks = Stock.objects.all()
@@ -427,9 +416,8 @@ class Indicator(models.Model):
             return suggusted,set(all_stocks.values_list('tmc_id',flat=True))-set(suggusted)
         else:
             return [],[]
-
     
-    def ma(self,x,today):
+    def ma(self, x, today):
         to_buy = []
         to_sell = []
         all_stocks = Stock.objects.all()
@@ -470,9 +458,8 @@ class Indicator(models.Model):
             return to_buy,to_sell
         else:
             return [],[]
-
     
-    def aoc(self,x,today):
+    def aoc(self, x, today):
         check = False
         suggusted = []
         all_stocks = Stock.objects.all()
@@ -507,8 +494,20 @@ class Indicator(models.Model):
         else:
             return [],[]
 
+    def update_time_control(self):
+        start_time = self.last_update
+        end_time = self.end_time
+        if end_time is None:
+            end_time = datetime.now()
+        if start_time is None:
+            start_time = self.start_time
+        if Indicator.datetime_to_dateint(start_time) != Indicator.datetime_to_dateint(end_time):
+            self.update_procedure_control(
+                Indicator.datetime_to_dateint(start_time),
+                Indicator.datetime_to_dateint(end_time)
+            )
 
-    def update_control(self,start_day,end_day):
+    def update_procedure_control(self, start_day, end_day):
         today = start_day
         while today<end_day:
             self.update(today)
@@ -518,7 +517,6 @@ class Indicator(models.Model):
             if today%100 == 31:
                 today += 69
             today += 1
-
 
     def update_today(self):
         today = int(''.join(map(str, str(date.today()).split('-'))))
@@ -542,8 +540,7 @@ class Indicator(models.Model):
             #     new_record.save()
             #     pass
             
-
-    def update(self,today):
+    def update(self, today):
         self.update_profit(today)
         # self.algorithm = 'mean_of_last_days([10])'
         # self.save()
@@ -589,8 +586,7 @@ class Indicator(models.Model):
         self.save()
         # print(self.last_update)
 
-
-    def update_profit(self,today):
+    def update_profit(self, today):
         self.bought_stocks_value = 0
         for stock in self.bought.all():
             # self.profit -= stock.profit * stock.volume
@@ -601,7 +597,6 @@ class Indicator(models.Model):
             self.profit = (float((self.gain + self.bought_stocks_value) / self.paid) - 1) * 100
         self.save()
 
-
     def mydelete(self):
         for bought in self.bought.all():
             bought.mydelete()
@@ -609,8 +604,5 @@ class Indicator(models.Model):
             bought.mydelete()
         self.delete()
 
-
     def __str__(self):
         return self.name
-
-
