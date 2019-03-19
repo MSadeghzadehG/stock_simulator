@@ -89,12 +89,13 @@ class Record(models.Model):
     last = models.CharField(max_length=300)
 
     def __str__(self):
-        return str(self.stock) + ' ' + str(self.last) + ' ' + str(self.date)
+        return str(self.stock) + ' ' + str(self.date)
 
     @classmethod
     def create(self, *l):
         # print(l)
-        return Record(stock=l[0],
+        return Record(
+            stock=l[0],
             Ticker=l[1],
             date=l[2],
             first=l[3],
@@ -498,11 +499,11 @@ class Indicator(models.Model):
             return [], []
 
     def update_time_control(self):
-        start_time = self.last_update
         end_time = self.end_time
         if end_time is None:
             end_time = datetime.now()
-        if start_time is None:
+        start_time = self.last_update
+        if self.last_update is None:
             start_time = self.start_time
         if Indicator.datetime_to_dateint(start_time) != Indicator.datetime_to_dateint(end_time):
             self.update_procedure_control(
@@ -512,12 +513,12 @@ class Indicator(models.Model):
 
     def update_procedure_control(self, start_day, end_day):
         today = start_day
-        while today<end_day:
+        while today < end_day:
             self.update(today)
             print(today)
-            if today%10000==1231:
+            if today % 10000 == 1231:
                 today = (int(today/10000) + 1)*10000 + 100
-            if today%100 == 31:
+            if today % 100 == 31:
                 today += 69
             today += 1
 

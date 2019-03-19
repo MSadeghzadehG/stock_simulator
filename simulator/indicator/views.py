@@ -8,7 +8,7 @@ from django.utils import timezone
 from datetime import datetime, date
 from django import forms
 import requests
-from .tasks import update_indicators
+from . import tasks
 from background_task import background
 
 
@@ -36,7 +36,7 @@ class IndicatorForm(forms.Form):
 def home(request):
     form = IndicatorForm(auto_id=False)
     print(datetime.strptime('18/03/2019 05:35', '%d/%m/%Y %H:%M'))
-    # update_indicators.delay()
+    tasks.update_records.delay()
     template = loader.get_template('indicator/home.html')
     context = {'form': form}
     return HttpResponse(template.render(context, request))
