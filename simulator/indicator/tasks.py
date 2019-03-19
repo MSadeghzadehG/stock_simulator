@@ -1,14 +1,14 @@
-from background_task import background
+# from background_task import background
+from indicator.celery import app
 from indicator.models import Indicator
+from datetime import datetime
 
 
-@background(schedule=0)
+@app.task
 def update_indicators():
+    print(datetime.now())
     indicators = Indicator.objects.all()
-    # print('here')
+    print('here')
     for indicator in indicators:
-        indicator.update_control(
-            Indicator.datetime_to_dateint(indicator.start_time),
-            Indicator.datetime_to_dateint(indicator.end_time)
-        )
+        indicator.update_time_control()
         print('updated')
