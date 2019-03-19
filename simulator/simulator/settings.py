@@ -30,7 +30,6 @@ ALLOWED_HOSTS = ['localhost']
 # Application definition
 
 INSTALLED_APPS = [
-    'background_task',
     'indicator.apps.IndicatorConfig',
     'django.contrib.admin',
     'django.contrib.auth',

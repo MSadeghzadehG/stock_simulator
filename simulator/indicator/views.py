@@ -9,7 +9,7 @@ from datetime import datetime, date
 from django import forms
 import requests
 from . import tasks
-from background_task import background
+#from background_task import background
 
 
 class IndicatorForm(forms.Form):
