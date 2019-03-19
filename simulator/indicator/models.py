@@ -5,6 +5,7 @@ import math
 # import json
 # from django.core import serializers
 
+
 DEFAULT_BUY = 1000000
 BUY_FEE = 0.00486
 SELL_FEE = 0.01029
@@ -12,7 +13,7 @@ SELL_FEE = 0.01029
 
 class Stock(models.Model):
     # id = models.BigIntegerField(unique=True, primary_key=True)
-    tmc_id = models.CharField(max_length=300,unique=True)
+    tmc_id = models.CharField(max_length=300, unique=True)
     q1 = models.CharField(max_length=300)    
     namad = models.CharField(max_length=300)
     nam = models.CharField(max_length=300)
@@ -36,30 +37,30 @@ class Stock(models.Model):
     q7 = models.CharField(max_length=300)
     q8 = models.CharField(max_length=300)
 
-    def update(self,*l):
+    def update(self, *l):
         # self.id=l[22]
-        self.q1=l[0]
+        self.q1 = l[0]
         self.namad = l[1]
         self.nam = l[2]
-        self.q2=l[3]
-        self.avalin=l[4]
+        self.q2 = l[3]
+        self.avalin = l[4]
         self.payani = l[5]
-        self.akharin_moamele=l[6]
-        self.tedad_moamelat=l[7]
-        self.hajm_moamelat=l[8]
-        self.arzesh_moamelat=l[9]
-        self.baze_rooz_kam=l[10]
-        self.baze_rooz_ziad=l[11]
-        self.dirooz=l[12]
-        self.eps=l[13]
-        self.q3=l[14]
-        self.q4=l[15]
-        self.q5=l[16]
-        self.q6=l[17]
-        self.mojaz_ziad=l[18]
-        self.mojaz_kam=l[19]
-        self.q7=l[20]
-        self.q8=l[21]
+        self.akharin_moamele = l[6]
+        self.tedad_moamelat = l[7]
+        self.hajm_moamelat = l[8]
+        self.arzesh_moamelat = l[9]
+        self.baze_rooz_kam = l[10]
+        self.baze_rooz_ziad = l[11]
+        self.dirooz = l[12]
+        self.eps = l[13]
+        self.q3 = l[14]
+        self.q4 = l[15]
+        self.q5 = l[16]
+        self.q6 = l[17]
+        self.mojaz_ziad = l[18]
+        self.mojaz_kam = l[19]
+        self.q7 = l[20]
+        self.q8 = l[21]
 
     def __str__(self):
         # print(self)
@@ -88,14 +89,14 @@ class Record(models.Model):
     last = models.CharField(max_length=300)
 
     def __str__(self):
-        return str(self.stock)+ ' ' + str(self.last) + ' ' + str(self.date)
+        return str(self.stock) + ' ' + str(self.last) + ' ' + str(self.date)
 
     @classmethod
-    def create(self,*l):
+    def create(self, *l):
         # print(l)
         return Record(stock=l[0],
-            Ticker= l[1],
-            date = l[2],
+            Ticker=l[1],
+            date=l[2],
             first=l[3],
             high=l[4],
             low=l[5],
@@ -105,34 +106,33 @@ class Record(models.Model):
             openint=l[9],
             per=l[10],
             openp=l[11],
-            last=l[12])
+            last=l[12]
+            )
 
 
 class Bought_stock(models.Model):
-    stock = models.ForeignKey(Stock,on_delete=models.DO_NOTHING)
+    stock = models.ForeignKey(Stock, on_delete=models.DO_NOTHING)
     buy_time = models.DateTimeField(auto_now_add=False)
-    sell_time = models.DateTimeField(null=True,default=None)
+    sell_time = models.DateTimeField(null=True, default=None)
     volume = models.FloatField(default=0)
     purchase_price = models.FloatField(default=0)
     current_price = models.FloatField(default=0)
     profit = models.FloatField(default=0)
 
-
-    def update_price(self,today):
-        now = Record.objects.filter(stock=self.stock,date=today)
+    def update_price(self, today):
+        now = Record.objects.filter(stock=self.stock, date=today)
         if now.exists():
             # print('ok')
             now = now[0]
             self.current_price = float(now.last)
-            self.profit = (float(self.current_price / self.purchase_price) - 1 ) * 100
+            self.profit = (float(self.current_price / self.purchase_price) - 1) * 100
             self.save()
         else:
             pass
             # print('nok')
 
-
     def mydelete(self):
-        Bought_stock.objects.get(stock=self.stock,buy_time=self.buy_time).delete()
+        Bought_stock.objects.get(stock=self.stock, buy_time=self.buy_time).delete()
 
     def __str__(self):
         return self.stock.__str__() + ' - ' + str(self.profit)
@@ -159,12 +159,12 @@ class Indicator(models.Model):
         return o
 
     def add_time_to_date(date):
-        return datetime.combine(date,datetime.now().time())
+        return datetime.combine(date, datetime.now().time())
 
     def dateint_to_datetime(date):
         date = str(date)
         date = date[0:4]+'-'+date[4:6]+'-'+date[6:]
-        return datetime.strptime(date , '%Y-%m-%d').date()
+        return datetime.strptime(date, '%Y-%m-%d').date()
 
     def ema(self, x, today):
         to_buy = []
@@ -174,9 +174,9 @@ class Indicator(models.Model):
         for stock in all_stocks:
             weighted_avg = []
             stock_records = Record.objects.filter(stock=stock).order_by('date')
-            last_prices = list(stock_records.values_list('last',flat=True))
+            last_prices = list(stock_records.values_list('last', flat=True))
             if stock_records.filter(date=str(today)).exists():
-                today_index = list(stock_records.values_list('date',flat=True)).index(str(today))
+                today_index = list(stock_records.values_list('date', flat=True)).index(str(today))
                 for day in x:
                     day_range_prices = last_prices[today_index:today_index+day]
                     to_check = []
@@ -219,12 +219,12 @@ class Indicator(models.Model):
         suggusted = []
         all_stocks = Stock.objects.all()
         for stock in all_stocks:
-            stock_records= Record.objects.filter(stock=stock).order_by('date')
+            stock_records = Record.objects.filter(stock=stock).order_by('date')
             if stock_records.filter(date=today).exists():
                 check = True
                 today_index = 0
                 stock_day = today
-                days = list(map(int, stock_records.values_list('date',flat=True).reverse()))
+                days = list(map(int, stock_records.values_list('date', flat=True).reverse()))
                 # print(today_index)
                 # input()
                 # print(stock)
@@ -276,11 +276,11 @@ class Indicator(models.Model):
         suggusted = []
         all_stocks = Stock.objects.all()
         for stock in all_stocks:
-            stock_records= Record.objects.filter(stock=stock).order_by('date')
+            stock_records = Record.objects.filter(stock=stock).order_by('date')
             if stock_records.filter(date=today).exists():
                 check = True
                 today_index = 0
-                days = list(map(int, stock_records.values_list('date',flat=True).reverse()))
+                days = list(map(int, stock_records.values_list('date', flat=True).reverse()))
                 try:
                     temp = days[:today_index+x]
                     # print(today_index)
@@ -291,18 +291,18 @@ class Indicator(models.Model):
                     for i in range(x):
                         now = stock_records.get(date=str(days[today_index]))
                         to_use_records.append(now)
-                        if float(now.high)>h:
+                        if float(now.high) > h:
                             h = float(now.high)
-                        if float(now.low)<l:
+                        if float(now.low) < l:
                             l = float(now.low)
-                        today_index += 1                            
+                        today_index += 1
                     for i in range(x):
                         now = to_use_records[i]
                         k = (float(now.last) - l) * 100 / (h-l)
                         ks.append(k)
                         today_index += 1
-                    d = sum(ks[:3])/3                    
-                    if ks[0]>d:
+                    d = sum(ks[:3])/3
+                    if ks[0] > d:
                         # print(stock)
                         suggusted.append(stock.tmc_id)
                 except:
@@ -313,25 +313,26 @@ class Indicator(models.Model):
                     pass
                 # input()
         # print(suggusted)
-        # print(len(suggusted))        
+        # print(len(suggusted))
         if check:
-            return suggusted,set(all_stocks.values_list('tmc_id',flat=True))-set(suggusted)
+            return suggusted, set(all_stocks.values_list('tmc_id', flat=True))
+            - set(suggusted)
         else:
-            return [],[]
+            return [], []
 
     def weekly_rule(self, x, today):
         # print(x)
         to_buy = []
         to_sell = []
-        all_stocks =Stock.objects.all()
+        all_stocks = Stock.objects.all()
         check = False
         for stock in all_stocks:
             to_use_records = []
-            stock_records= Record.objects.filter(stock=stock).order_by('date')
+            stock_records = Record.objects.filter(stock=stock).order_by('date')
             if stock_records.filter(date=today).exists():
                 check = True
                 today_index = 0
-                days = list(map(int, stock_records.values_list('date',flat=True).reverse()))
+                days = list(map(int, stock_records.values_list('date', flat=True).reverse()))
                 # print(stock)
                 try:
                     temp = days[today_index+7*x-1]
@@ -340,19 +341,19 @@ class Indicator(models.Model):
                     h = 0
                     c = float(now.last)
                     today_index = 1
-                    for i in range(1,7*x):
+                    for i in range(1, 7*x):
                         now = stock_records.get(date=str(days[today_index]))
                         to_use_records.append(now)
-                        if float(now.high)>h:
+                        if float(now.high) > h:
                             h = float(now.high)
-                        if float(now.low)<l:
+                        if float(now.low) < l:
                             l = float(now.low)
-                        today_index += 1                                                
+                        today_index += 1
                     # print(c,l,h)
-                    if c>h:
+                    if c > h:
                         # print(stock)
                         to_buy.append(stock.tmc_id)
-                    elif c<l:
+                    elif c < l:
                         to_sell.append(stock.tmc_id)
                 except:
                     # print('e')
@@ -362,21 +363,21 @@ class Indicator(models.Model):
                     pass
                 # input()
         if check:
-            return to_buy,to_sell
+            return to_buy, to_sell
         else:
-            return [],[]
+            return [], []
 
     def rsi(self, x, today):
         check = False
         suggusted = []
         all_stocks = Stock.objects.all()
         for stock in all_stocks:
-            stock_records= Record.objects.filter(stock=stock).order_by('date')
+            stock_records = Record.objects.filter(stock=stock).order_by('date')
             if stock_records.filter(date=today).exists():
                 check = True
                 today_index = 0
                 stock_day = today
-                days = list(map(int, stock_records.values_list('date',flat=True).reverse()))
+                days = list(map(int, stock_records.values_list('date', flat=True).reverse()))
                 # print(stock)
                 try:
                     temp = days[:today_index+x]
@@ -390,7 +391,7 @@ class Indicator(models.Model):
                     for i in range(x-1):
                         # print(dpps[i+1])
                         # print(dpps[i])
-                        if prices[i+1]>prices[i]:
+                        if prices[i+1] > prices[i]:
                             increasing_indexes.append(i+1)
                         else:
                             decreasing_indexes.append(i+1)
@@ -398,9 +399,9 @@ class Indicator(models.Model):
                     p = sum([prices[i] for i in increasing_indexes])/len(increasing_indexes)
                     n = sum([prices[i] for i in decreasing_indexes])/len(decreasing_indexes)
                     m_indicator = p/n
-                    RSI = 1 - 1 /(1+m_indicator)
+                    RSI = 1 - 1 / (1+m_indicator)
                     # print(RSI)
-                    if RSI>0.5:
+                    if RSI > 0.5:
                         # print(stock)
                         suggusted.append(stock.tmc_id)
                 except:
@@ -413,10 +414,11 @@ class Indicator(models.Model):
         # print(suggusted)
         # print(len(suggusted))
         if check:
-            return suggusted,set(all_stocks.values_list('tmc_id',flat=True))-set(suggusted)
+            return suggusted, set(all_stocks.values_list('tmc_id', flat=True))
+            - set(suggusted)
         else:
-            return [],[]
-    
+            return [], []
+
     def ma(self, x, today):
         to_buy = []
         to_sell = []
@@ -425,11 +427,11 @@ class Indicator(models.Model):
         for stock in all_stocks:
             weighted_avg = []
             stock_records = Record.objects.filter(stock=stock).order_by('date')
-            last_prices = list(stock_records.values_list('last',flat=True))
+            last_prices = list(stock_records.values_list('last', flat=True))
             if stock_records.filter(date=str(today)).exists():
-                today_index = list(stock_records.values_list('date',flat=True)).index(str(today))
+                today_index = list(stock_records.values_list('date', flat=True)).index(str(today))
                 for day in x:
-                    day_range_prices = laste_prices[today_index:today_index+day]
+                    day_range_prices = laste_prices[today_index:today_index + day]
                     to_check = []
                     for i in day_range_prices:
                         to_check.append(float(i))
@@ -437,14 +439,14 @@ class Indicator(models.Model):
                 increase_check = True
                 decrease_check = True
                 # print(weighted_avg)
-                for i in range(1,len(weighted_avg)):
+                for i in range(1, len(weighted_avg)):
                     if weighted_avg[i] <= weighted_avg[i-1]:
                         increase_check = False
                     if weighted_avg[i] >= weighted_avg[i-1]:
                         decrease_check = False
-                if len(x)==1:
+                if len(x) == 1:
                     # print(weighted_avg[0])
-                    if weighted_avg[0]>float(stock_records.get(date=today).last):
+                    if weighted_avg[0] > float(stock_records.get(date=today).last):
                         to_buy.append(stock.getID())
                         is_valid = True
                 else:
@@ -455,29 +457,29 @@ class Indicator(models.Model):
                         to_sell.append(stock.getID())
                         is_valid = True
         if is_valid:
-            return to_buy,to_sell
+            return to_buy, to_sell
         else:
-            return [],[]
-    
+            return [], []
+
     def aoc(self, x, today):
         check = False
         suggusted = []
         all_stocks = Stock.objects.all()
         for stock in all_stocks:
-            stock_records= Record.objects.filter(stock=stock).order_by('date')
+            stock_records = Record.objects.filter(stock=stock).order_by('date')
             if stock_records.filter(date=today).exists():
                 check = True
                 today_index = 0
                 stock_day = today
-                days = list(map(int, stock_records.values_list('date',flat=True).reverse()))
+                days = list(map(int, stock_records.values_list('date', flat=True).reverse()))
                 # print(today_index)
                 # input()
                 # print(stock)
                 try:
                     # print(today_index)
                     now = float(stock_records.filter(date=str(days[today_index]))[0].last)
-                    last = float(stock_records.filter(date=str(days[today_index+x-1]))[0].last)
-                    if now>last:
+                    last = float(stock_records.filter(date=str(days[today_index + x - 1]))[0].last)
+                    if now > last:
                         # print(stock)
                         suggusted.append(stock.tmc_id)
                 except:
@@ -490,9 +492,10 @@ class Indicator(models.Model):
         # print(suggusted)
         # print(len(suggusted))
         if check:
-            return suggusted,set(all_stocks.values_list('tmc_id',flat=True))-set(suggusted)
+            return suggusted, set(all_stocks.values_list('tmc_id', lat=True))
+            - set(suggusted)
         else:
-            return [],[]
+            return [], []
 
     def update_time_control(self):
         start_time = self.last_update
@@ -518,33 +521,17 @@ class Indicator(models.Model):
                 today += 69
             today += 1
 
-    def update_today(self):
-        today = int(''.join(map(str, str(date.today()).split('-'))))
-        print(today)
-        for bought in self.bought.all():
-            stock = bought.stock
-            # print(type(Record.objects.all()[0].stock))
-            # print(type(bought.stock))
-            print((Record.objects.get(stock=stock,date=today-2)))
-
-            # try:
-            #     found = Record.objects.get(stock=stock.tmc_id,date=today)
-            #     found = Record(stock=stock,date=today,first=stock.avalin,high=stock.baze_rooz_ziad,low=stock.baze_rooz_kam,close=stock.payani,\
-            #         value=stock.arzesh_moamelat,vol=stock.hajm_moamelat,openint=stock.tedad_moamelat,per='D',openp=stock.dirooz,last=stock.akharin_moamele)
-            #     # print('found',found,today)
-            #     found.save()
-            # except:
-            #     new_record = Record(stock=stock,date=today,first=stock.avalin,high=stock.baze_rooz_ziad,low=stock.baze_rooz_kam,close=stock.payani,\
-            #         value=stock.arzesh_moamelat,vol=stock.hajm_moamelat,openint=stock.tedad_moamelat,per='D',openp=stock.dirooz,last=stock.akharin_moamele)
-            #     print('new',new_record,today)
-            #     new_record.save()
-            #     pass
-            
     def update(self, today):
         self.update_profit(today)
         # self.algorithm = 'mean_of_last_days([10])'
         # self.save()
-        to_buy,to_sell = eval('self.'+self.algorithm.split(')')[0]+','+str(today)+')')
+        to_buy, to_sell = eval(
+            'self.' +
+            self.algorithm.split(')')[0] +
+            ',' +
+            str(today) +
+            ')'
+            )
         print(len(to_buy))
         print(len(to_sell))
         boughts = self.bought.all()
@@ -566,13 +553,13 @@ class Indicator(models.Model):
         for id in to_buy:
             if int(id) not in list(boughts.values_list('stock', flat=True)):
                 stock = Stock.objects.get(tmc_id=id)
-                price = Record.objects.filter(stock=stock,date=today)
+                price = Record.objects.filter(stock=stock, date=today)
                 # print(stock.akharin_moamele)
                 if price.exists():
                     price = float(price[0].last)
                     volume = math.ceil(DEFAULT_BUY/price)
                     # print(volume,price)
-                    bought_stock = Bought_stock(stock=stock,purchase_price=price,current_price=price,volume=volume)
+                    bought_stock = Bought_stock(stock=stock, purchase_price=price, current_price=price, volume=volume)
                     bought_stock.buy_time = Indicator.add_time_to_date(Indicator.dateint_to_datetime(today))
                     self.paid += price * volume
                     print('bought_stock')
@@ -593,7 +580,7 @@ class Indicator(models.Model):
             stock.update_price(today)
             self.bought_stocks_value += stock.current_price * stock.volume
             # print(self.profit)
-        if self.paid>0:
+        if self.paid > 0:
             self.profit = (float((self.gain + self.bought_stocks_value) / self.paid) - 1) * 100
         self.save()
 
