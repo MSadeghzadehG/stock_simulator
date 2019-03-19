@@ -8,7 +8,7 @@ from . import views
 
 @app.task
 def update_indicators():
-    print(datetime.now())
+    print('time', datetime.now())
     indicators = Indicator.objects.all()
     print('here')
     for indicator in indicators:
