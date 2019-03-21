@@ -527,6 +527,10 @@ class Indicator(models.Model):
             today += 1
 
     def update(self, today):
+        try:
+            self.last_update = Indicator.add_time_to_date(Indicator.dateint_to_datetime(today))
+        except:
+            return
         self.update_profit(today)
         # self.algorithm = 'mean_of_last_days([10])'
         # self.save()
@@ -574,7 +578,6 @@ class Indicator(models.Model):
         # print(self.bought.all())
         # print(self.last_update)
         # print(datetime.now())
-        self.last_update = Indicator.add_time_to_date(Indicator.dateint_to_datetime(today))
         self.save()
         # print(self.last_update)
 
