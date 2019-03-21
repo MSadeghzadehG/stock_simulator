@@ -435,7 +435,7 @@ class Indicator(models.Model):
             if stock_records.filter(date=str(today)).exists():
                 today_index = list(stock_records.values_list('date', flat=True)).index(str(today))
                 for day in x:
-                    day_range_prices = laste_prices[today_index:today_index + day]
+                    day_range_prices = last_prices[today_index:today_index + day]
                     to_check = []
                     for i in day_range_prices:
                         to_check.append(float(i))
@@ -497,7 +497,7 @@ class Indicator(models.Model):
         # print(suggusted)
         # print(len(suggusted))
         if check:
-            return suggusted, set(all_stocks.values_list('tmc_id', lat=True))
+            return suggusted, set(all_stocks.values_list('tmc_id', flat=True))
             - set(suggusted)
         else:
             return [], []
@@ -531,7 +531,7 @@ class Indicator(models.Model):
         # self.algorithm = 'mean_of_last_days([10])'
         # self.save()
         to_buy, to_sell = eval(
-            'self.' +
+            'self.algo_' +
             self.algorithm.split(')')[0] +
             ',' +
             str(today) +
