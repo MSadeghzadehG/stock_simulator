@@ -35,11 +35,17 @@ class IndicatorForm(forms.Form):
 
 def home(request):
     form = IndicatorForm(auto_id=False)
-    print(datetime.strptime('18/03/2019 05:35', '%d/%m/%Y %H:%M'))
     # tasks.update_records.delay()
     template = loader.get_template('indicator/home.html')
     context = {'form': form}
     return HttpResponse(template.render(context, request))
+
+
+
+def update_request(request):
+    tasks.update_records.delay()
+    return redirect('/stocks')
+
 
 
 def stocks_table(request):
@@ -234,7 +240,3 @@ def update():
         update_stock_history(i)
         print(list(all_stock).index(i))
 
-
-def update_request(request):
-    update()
-    return redirect('/stocks')
