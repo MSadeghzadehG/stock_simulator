@@ -83,9 +83,10 @@
                                         <td>\
                                             <input type="button" value="update" class="indicator-update" id="/indicators/'+name+'/update">\
                                         </td>');
-                    Object.keys(data[name]).forEach(function(key) {
-                        // console.log(key, data[name][key]);
-                        $("#indicator-table > tbody").children().last().append('<td>' + data[name][key] + '</td>');
+                    console.log(Object.values(data[name]))                    
+                    $.each(Object.values(data[name]),function(index,key) {
+                        console.log(key, data[name][index]);
+                        $("#indicator-table > tbody").children().last().append('<td>' + data[name][index] + '</td>');
                     });
                     $('.indicator-update').click(function (e) {
                         e.preventDefault();

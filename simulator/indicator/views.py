@@ -149,11 +149,11 @@ def get_indicator(request):
     indicator_names = Indicator.objects.all().values_list('name', flat=True)
     indicators = {}
     for name in indicator_names:
-        obj = {}
+        obj = []
         for indicator_field in Indicator._meta.get_fields():
             if indicator_field.name not in ('bought', 'id', 'trade_log'):
-                obj[indicator_field.name] = Indicator.objects.values_list(
-                    indicator_field.name, flat=True).get(name=name)
+                obj.append(Indicator.objects.values_list(
+                    indicator_field.name, flat=True).get(name=name))
         indicators[name] = obj
     return JsonResponse(indicators)
 
