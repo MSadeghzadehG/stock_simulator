@@ -24,7 +24,7 @@ SECRET_KEY = '_mn_k-9nv8o*-6p9%c)4dqmnyn7yxt_pk$0b!j4xije@!j0nh+'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost']
+ALLOWED_HOSTS = ['localhost','91.98.152.150']
 
 
 # Application definition
@@ -124,6 +124,7 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR + '/staticfiles'
 
 # Celery application definition
 CELERY_BROKER_URL = 'redis://localhost:6379'
