@@ -167,7 +167,7 @@ class Indicator(models.Model):
         date = date[0:4]+'-'+date[4:6]+'-'+date[6:]
         return datetime.strptime(date, '%Y-%m-%d').date()
 
-    def ema(self, x, today):
+    def algo_ema(self, x, today):
         to_buy = []
         to_sell = []
         all_stocks = Stock.objects.all()
@@ -215,7 +215,8 @@ class Indicator(models.Model):
         else:
             return [],[]
 
-    def mfi(self, x, today):
+    def algo_mfi(self, x, today):
+        x = x[0]
         check = False
         suggusted = []
         all_stocks = Stock.objects.all()
@@ -272,7 +273,8 @@ class Indicator(models.Model):
         else:
             return [],[]
 
-    def stockastic(self, x, today):
+    def algo_stockastic(self, x, today):
+        x = x[0]
         check = False
         suggusted = []
         all_stocks = Stock.objects.all()
@@ -321,8 +323,8 @@ class Indicator(models.Model):
         else:
             return [], []
 
-    def weekly_rule(self, x, today):
-        # print(x)
+    def algo_weekly_rule(self, x, today):
+        x = x[0]
         to_buy = []
         to_sell = []
         all_stocks = Stock.objects.all()
@@ -368,7 +370,8 @@ class Indicator(models.Model):
         else:
             return [], []
 
-    def rsi(self, x, today):
+    def algo_rsi(self, x, today):
+        x = x[0]
         check = False
         suggusted = []
         all_stocks = Stock.objects.all()
@@ -420,7 +423,7 @@ class Indicator(models.Model):
         else:
             return [], []
 
-    def ma(self, x, today):
+    def algo_ma(self, x, today):
         to_buy = []
         to_sell = []
         all_stocks = Stock.objects.all()
@@ -462,7 +465,8 @@ class Indicator(models.Model):
         else:
             return [], []
 
-    def aoc(self, x, today):
+    def algo_aoc(self, x, today):
+        x = x[0]
         check = False
         suggusted = []
         all_stocks = Stock.objects.all()

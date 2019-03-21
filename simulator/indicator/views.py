@@ -15,7 +15,11 @@ from . import tasks
 class IndicatorForm(forms.Form):
 
     name = forms.CharField(max_length=100)
-    algorithm = forms.CharField(max_length=200)
+    # algorithm = forms.CharField(max_length=200)
+    algorithm_name = forms.ChoiceField(
+        choices=[(i.split('_')[1], i.split('_')[1]) for i in dir(Indicator) if i.startswith('algo_')]
+        )
+    algorithm_inputs = forms.CharField(max_length=100)
     start_date = forms.DateField(
         input_formats=['%m/%d/%Y'],
         widget=forms.DateInput(attrs={
@@ -30,7 +34,14 @@ class IndicatorForm(forms.Form):
     )
     update_daily = forms.BooleanField(required=False)
 
-    # def clean(self):
+    def clean_algorithm_inputs(self):
+        data = self.cleaned_data['algorithm_inputs']
+        try:
+            print(list(map(int, data.split(','))))
+        except:
+            raise forms.ValidationError("choose like this: 3,5,7")
+        return data
+            
 
 
 def home(request):
@@ -100,11 +111,14 @@ def add_indicator(request):
     form = IndicatorForm(request.POST)
     # check whether it's valid:
     if form.is_valid():
+        print(form.cleaned_data['algorithm_name'])
+        print(form.cleaned_data['algorithm_inputs'])
         start_time = Indicator.add_time_to_date(form.cleaned_data['start_date'])
         end_time = Indicator.add_time_to_date(form.cleaned_data['end_date'])
+        algorithm = str(form.cleaned_data['algorithm_name']) + '([' + str(form.cleaned_data['algorithm_inputs']) + '])'
         new_indicator = Indicator(
             name=form.cleaned_data['name'],
-            algorithm=form.cleaned_data['algorithm'],
+            algorithm=algorithm,
             start_time=start_time,
             end_time=end_time
             )
