@@ -113,7 +113,7 @@ class Record(models.Model):
 
 class Bought_stock(models.Model):
     stock = models.ForeignKey(Stock, on_delete=models.DO_NOTHING)
-    buy_time = models.DateTimeField(auto_now_add=False)
+    buy_time = models.DateTimeField(auto_now_add=False, default=datetime.now())
     sell_time = models.DateTimeField(null=True, default=None)
     volume = models.FloatField(default=0)
     purchase_price = models.FloatField(default=0)
