@@ -128,7 +128,7 @@ def delete_indicator(request, name):
 
 def update_indicator(request, name):
     indicator = Indicator.objects.all().get(name=name)
-    indicator.update_time_indicator()
+    indicator.update_time_control()
     return redirect('/indicators')
 
 
