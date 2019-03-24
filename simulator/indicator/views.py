@@ -9,7 +9,6 @@ from datetime import datetime, date
 from django import forms
 import requests
 from . import tasks
-#from background_task import background
 
 
 class IndicatorForm(forms.Form):
@@ -43,7 +42,6 @@ class IndicatorForm(forms.Form):
         return data
             
 
-
 def home(request):
     form = IndicatorForm(auto_id=False)
     # tasks.update_records.delay()
@@ -52,11 +50,9 @@ def home(request):
     return HttpResponse(template.render(context, request))
 
 
-
 def update_request(request):
     tasks.update_records.delay()
     return redirect('/stocks')
-
 
 
 def stocks_table(request):
@@ -185,11 +181,14 @@ def update_stocks_today():
         # print(i.split(',')[:23])
         seprated = i.split(',')[:23]
         # print(seprated)
-        # sleep(1)
-        new_entry = Stock(seprated[0], *seprated)
+        seprated.insert(0, stocks_list.index(i))
+        # print(seprated)
+        new_entry = Stock(*seprated)
+        # print(new_entry.tmc_id)
+        # print(new_entry.pk)
         try:
-            found = Stock.objects.get(tmc_id=seprated[0])
-            found.update(*seprated[1:])
+            found = Stock.objects.get(tmc_id=seprated[1])
+            found.update(*seprated[2:])
             # found.save(id=seprated[0])
             print('found'+str(found))
             found.save()
@@ -253,4 +252,3 @@ def update():
     for i in all_stock:
         update_stock_history(i)
         print(list(all_stock).index(i))
-

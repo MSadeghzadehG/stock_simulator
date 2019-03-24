@@ -12,9 +12,9 @@ SELL_FEE = 0.01029
 
 
 class Stock(models.Model):
-    # id = models.BigIntegerField(unique=True, primary_key=True)
-    tmc_id = models.CharField(max_length=300, unique=True)
-    q1 = models.CharField(max_length=300)    
+    # id = models.BigIntegerField(primary_key=True)
+    tmc_id = models.CharField(max_length=300, primary_key=False)
+    q1 = models.CharField(max_length=300)
     namad = models.CharField(max_length=300)
     nam = models.CharField(max_length=300)
     q2 = models.CharField(max_length=300)
@@ -113,7 +113,7 @@ class Record(models.Model):
 
 class Bought_stock(models.Model):
     stock = models.ForeignKey(Stock, on_delete=models.DO_NOTHING)
-    buy_time = models.DateTimeField(auto_now_add=False, default=datetime.now())
+    buy_time = models.DateTimeField(auto_now_add=False)
     sell_time = models.DateTimeField(null=True, default=None)
     volume = models.FloatField(default=0)
     purchase_price = models.FloatField(default=0)
