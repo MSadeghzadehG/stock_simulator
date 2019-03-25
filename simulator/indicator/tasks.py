@@ -17,6 +17,12 @@ def update_indicators():
 
 
 @app.task
+def update_indicator(name):
+	indicator = Indicator.objects.all().get(name=name)
+	indicator.update_time_control()
+
+
+@app.task
 def update_records():
     Record.objects.filter(Ticker='').delete()
     print('day records deleted', Record.objects.filter(Ticker=''))

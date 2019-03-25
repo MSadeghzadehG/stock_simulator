@@ -138,8 +138,7 @@ def delete_indicator(request, name):
 
 def update_indicator(request, name):
     print(name, 'update started')
-    indicator = Indicator.objects.all().get(name=name)
-    indicator.update_time_control()
+    tasks.update_indicator.delay(name)
     return redirect('/indicators')
 
 
