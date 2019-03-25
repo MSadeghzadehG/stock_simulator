@@ -81,19 +81,19 @@
                                             </form>\
                                         </td>\
                                         <td>\
-                                            <input type="button" value="update" class="indicator-update" id="/indicators/'+name+'/update">\
+                                            <input type="button" value="update" class="indicator-update" id="indicator-'+name+'"/>\
                                         </td>');
                     console.log(Object.values(data[name]))                    
                     $.each(Object.values(data[name]),function(index,key) {
                         console.log(key, data[name][index]);
                         $("#indicator-table > tbody").children().last().append('<td>' + data[name][index] + '</td>');
                     });
-                    $('.indicator-update').click(function (e) {
+                    $("input[id=indicator-" + name + "]").click(function (e) {
                         e.preventDefault();
                         console.log('here')
                         $.ajax({
                             type: "POST",
-                            url: $(this).attr('id'),
+                            url: "/indicators/"+name+"/update",
                             data: "",
                             success: function(result) {
                                 alert('ok');

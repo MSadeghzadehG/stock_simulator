@@ -154,11 +154,8 @@ class Indicator(models.Model):
     trade_log = models.ManyToManyField(Bought_stock, related_name='trade_log')
 
     def datetime_to_dateint(time):
-        print(time)
-        o = int(''.join(map(str, str(time.date()).split('-'))))
-        print(o)
-        return o
-
+        return int(''.join(map(str, str(time.date()).split('-'))))
+        
     def add_time_to_date(date):
         return datetime.combine(date, datetime.now().time())
 
