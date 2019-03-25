@@ -128,11 +128,11 @@ def add_indicator(request):
 
 
 def delete_indicator(request, name):
+    print('deleting boughts of',name,'...')
     indicator = Indicator.objects.all().get(name=name)
-    # print(indicator)
     indicator.mydelete()
-    print(len(Indicator.objects.all()))
-    print(len(Bought_stock.objects.all()))
+    # print(len(Indicator.objects.all()))
+    # print(len(Bought_stock.objects.all()))
     return redirect('/indicators')
 
 

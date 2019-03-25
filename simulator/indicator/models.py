@@ -320,7 +320,7 @@ class Indicator(models.Model):
         else:
             return [], []
 
-    def algo_weekly_rule(self, x, today):
+    def algo_weekly(self, x, today):
         x = x[0]
         to_buy = []
         to_sell = []
@@ -516,7 +516,7 @@ class Indicator(models.Model):
         today = start_day
         while today < end_day:
             self.update(today)
-            print(today)
+            print(self.name,':',today)
             if today % 10000 == 1231:
                 today = (int(today/10000) + 1)*10000 + 100
             if today % 100 == 31:
@@ -529,7 +529,7 @@ class Indicator(models.Model):
         except:
             return
         self.update_profit(today)
-        # self.algorithm = 'mean_of_last_days([10])'
+        # self.algorithm = 'algo_ma([10])'
         # self.save()
         to_buy, to_sell = eval(
             'self.algo_' +
@@ -554,7 +554,7 @@ class Indicator(models.Model):
                 # print(len(self.trade_log.all()))
                 bought.sell_time = Indicator.add_time_to_date(Indicator.dateint_to_datetime(today))
                 bought.save()
-                print('deleted')
+                print(self.name,': deleted')
                 # input()
         for id in to_buy:
             if int(id) not in list(boughts.values_list('stock', flat=True)):
@@ -568,7 +568,7 @@ class Indicator(models.Model):
                     bought_stock = Bought_stock(stock=stock, purchase_price=price, current_price=price, volume=volume)
                     bought_stock.buy_time = Indicator.add_time_to_date(Indicator.dateint_to_datetime(today))
                     self.paid += price * volume
-                    print('bought_stock')
+                    print(self.name,': bought_stock')
                     bought_stock.save()
                     self.bought.add(bought_stock)
                     self.trade_log.add(bought_stock)
