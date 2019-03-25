@@ -557,8 +557,8 @@ class Indicator(models.Model):
                 print(self.name,': deleted')
                 # input()
         for id in to_buy:
-            if int(id) not in list(boughts.values_list('stock', flat=True)):
-                stock = Stock.objects.get(tmc_id=id)
+            stock = Stock.objects.get(tmc_id=id)
+            if stock.id not in list(boughts.values_list('stock_id', flat=True)):
                 price = Record.objects.filter(stock=stock, date=today)
                 # print(stock.akharin_moamele)
                 if price.exists():
