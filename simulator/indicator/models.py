@@ -12,8 +12,8 @@ SELL_FEE = 0.01029
 
 
 class Stock(models.Model):
-    # id = models.BigIntegerField(primary_key=True)
-    tmc_id = models.CharField(max_length=300, primary_key=False)
+    # my_id = models.BigIntegerField(primary_key=True)
+    tmc_id = models.BigIntegerField(primary_key=True)
     q1 = models.CharField(max_length=300)
     namad = models.CharField(max_length=300)
     nam = models.CharField(max_length=300)
@@ -62,15 +62,44 @@ class Stock(models.Model):
         self.q7 = l[20]
         self.q8 = l[21]
 
+    # @classmethod
+    # def create(self, *l):
+    #     # print(l)
+    #     return Record(
+    #         tmc_id=l[0],
+    #         q1=l[1],
+    #         namad=l[2],
+    #         nam=l[3],
+    #         q2=l[4],
+    #         avalin=l[5],
+    #         payani=l[6],
+    #         akharin_moamele=l[7],
+    #         tedad_moamelat=l[8],
+    #         hajm_moamelat=l[9],
+    #         arzesh_moamelat=l[10],
+    #         baze_rooz_kam=l[11],
+    #         baze_rooz_ziad=l[12],
+    #         dirooz=l[13],
+    #         eps=l[14],
+    #         q3=l[15],
+    #         q4=l[16],
+    #         q5=l[17],
+    #         q6=l[18],
+    #         mojaz_ziad=l[19],
+    #         mojaz_kam=l[20],
+    #         q7=l[21],
+    #         q8=l[22]
+    #         )
+
     def __str__(self):
         # print(self)
-        return self.namad + ' ' + str(self.akharin_moamele) + ' ' + str(self.tmc_id)
+        return self.namad + ' ' + str(self.tmc_id)
 
     def chap(self):
         return list(self)
 
     def getID(self):
-        return self.tmc_id
+        return str(self.tmc_id)
 
 
 class Record(models.Model):

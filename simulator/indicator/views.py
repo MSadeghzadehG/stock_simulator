@@ -63,8 +63,10 @@ def stocks_table(request):
         my_integer_field=Cast(
             'hajm_moamelat', IntegerField())
             ).order_by('my_integer_field', 'hajm_moamelat').reverse()
+    stocks = serializers.serialize("python", stocks)
+    # print(stocks)
     context = {
-        'stocks': serializers.serialize("python", stocks),
+        'stocks': stocks,
         'headers': [field.name for field in Stock._meta.get_fields()][3:]
         }
     return HttpResponse(template.render(context, request))
@@ -143,14 +145,14 @@ def update_indicator(request, name):
 
 
 def delete_database(request):
-    # Record.objects.all().delete()
+    Record.objects.all().delete()
     # Stock.objects.all().delete()
     # Indicator.objects.all().delete()
-    for o in Indicator.objects.all():
-        o.mydelete()
-    print(len(Bought_stock.objects.all()))
+    # for o in Indicator.objects.all():
+    #     o.mydelete()
+    # print(len(Bought_stock.objects.all()))
     # print(len(Record.objects.all()))
-    # Record.objects.filter(date=20190308).delete()
+    # Record.objects.filter().delete()
     # print(len(Record.objects.all()))
     return HttpResponse('deleted')
 
@@ -173,7 +175,7 @@ def update_stocks_today():
     # headers = ['id','?','namad','nam','?','avalin','payani','akharin moamele','tedad moamelat','hajm moamelat','arzesh mamelat','baze rooz kam','baze rooz ziad','dirooz','eps','?','?','?','?','mojaz ziad','mojaz kam','?','?']
     # print(len(r.text.split('@')[2].split(';')))
     # print(len(Record.objects.all()))
-    print(len(Stock.objects.all()))
+    max_id = len(Stock.objects.all())
     stocks_list = r.text.split('@')[2].split(';')
     # print(stocks_list)
     today = Indicator.datetime_to_dateint(datetime.now())
@@ -181,18 +183,18 @@ def update_stocks_today():
         # print(i.split(',')[:23])
         seprated = i.split(',')[:23]
         # print(seprated)
-        seprated.insert(0, stocks_list.index(i))
+        # seprated.insert(0, max_id+stocks_list.index(i))
         # print(seprated)
-        new_entry = Stock(*seprated)
         # print(new_entry.tmc_id)
         # print(new_entry.pk)
         try:
-            found = Stock.objects.get(tmc_id=seprated[1])
-            found.update(*seprated[2:])
+            found = Stock.objects.get(tmc_id=seprated[0])
+            found.update(*seprated[1:])
             # found.save(id=seprated[0])
             print('found'+str(found))
             found.save()
         except ObjectDoesNotExist:
+            new_entry = Stock(*seprated)
             print('new'+str(new_entry))
             new_entry.save()
         # try:
@@ -232,7 +234,7 @@ def update_stock_history(stock):
         seprated = j.split(',')
         # print(seprated[1])
         try:
-            found = Record.objects.get(stock=stock, date=seprated[1])
+            found = Record.objects.get(stock=stock,date=seprated[1])
             print('found'+str(found))
             # for attr, value in found.__dict__.items():
             #     print(attr, value)
