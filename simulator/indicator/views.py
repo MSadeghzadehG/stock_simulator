@@ -170,6 +170,23 @@ def get_indicator(request):
     return JsonResponse(indicators)
 
 
+def get_stocks(request):
+    stock_names = Stock.objects.all().values_list('tmc_id', flat=True)
+    stocks = {}
+    for tmc_id in stock_names:
+        obj = []
+        for stock_field in Stock._meta.get_fields():
+            if stock_field.name not in ('record', 'bought_stock'):
+                # print(tmc_id, stock_field)
+                # print(Stock.objects.filter(tmc_id=tmc_id).values_list(stock_field.name, flat=True))
+                # print(Stock.objects.values_list(
+                  # stock_field.name, flat=True).filter(tmc_id=tmc_id))
+                obj.append(Stock.objects.values_list(
+                    stock_field.name, flat=True).get(tmc_id=tmc_id))
+        stocks[tmc_id] = obj
+    return JsonResponse(stocks)
+
+
 def update_stocks_today():
     r = requests.get('http://www.tsetmc.com/tsev2/data/MarketWatchInit.aspx?h=0&r=0')
     # headers = ['id','?','namad','nam','?','avalin','payani','akharin moamele','tedad moamelat','hajm moamelat','arzesh mamelat','baze rooz kam','baze rooz ziad','dirooz','eps','?','?','?','?','mojaz ziad','mojaz kam','?','?']

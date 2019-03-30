@@ -14,4 +14,5 @@ urlpatterns = [
     path('indicators/<name>/update', views.update_indicator, name='update_indicator'),
     path('add_indicator/', views.add_indicator, name='add_indicator'),
     path('get_indicator/', views.get_indicator, name='get_indicator'),
+    path('get_stocks/', views.get_stocks, name='get_stocks'),
 ]
