@@ -24,12 +24,13 @@ SECRET_KEY = '_mn_k-9nv8o*-6p9%c)4dqmnyn7yxt_pk$0b!j4xije@!j0nh+'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost','91.98.152.150']
+ALLOWED_HOSTS = ['localhost', '91.98.152.150']
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'rest_framework',
     'indicator.apps.IndicatorConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -132,3 +133,8 @@ CELERY_RESULT_BACKEND = 'redis://localhost:6379'
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10
+}

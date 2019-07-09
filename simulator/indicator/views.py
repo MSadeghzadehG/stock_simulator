@@ -9,6 +9,15 @@ from datetime import datetime, date
 from django import forms
 import requests
 from . import tasks
+from rest_framework import viewsets
+
+
+class StockViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows stocks to be viewed or edited.
+    """
+    queryset = Stock.objects.all().order_by('nam')
+    serializer_class = StockSerializer
 
 
 class IndicatorForm(forms.Form):
@@ -67,7 +76,7 @@ def stocks_table(request):
     # print(stocks)
     context = {
         'stocks': stocks,
-        'headers': [field.name for field in Stock._meta.get_fields()][3:]
+        'headers': [field.name for field in Stock._meta.get_fields()][2:]
         }
     return HttpResponse(template.render(context, request))
 
