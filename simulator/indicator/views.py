@@ -10,7 +10,7 @@ from django import forms
 import requests
 from . import tasks
 from rest_framework import viewsets
-from serializers import StockSerializer
+from indicator.serializers import StockSerializer
 
 class StockViewSet(viewsets.ModelViewSet):
     """
