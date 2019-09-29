@@ -70,7 +70,7 @@
             }
         });
         $.ajax({
-            url : 'http://91.98.152.150:5000/get_stocks',
+            url : 'http://localhost:8000/get_stocks',
             type : 'GET',
             success : function(data) {   
                 // console.log(data);           
@@ -85,9 +85,9 @@
                     console.log(Object.values(data[name]))                    
                     $.each(Object.values(data[name]),function(index,key) {
                         // console.log(key, data[name][index]);
-                        if (index > 0) {
+                        // if (index > 0) {
                             $("#stocks-table > tbody").children().last().append('<td>' + data[name][index] + '</td>');
-                        }
+                        // }
                     });
                 });
             },
