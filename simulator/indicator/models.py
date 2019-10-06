@@ -14,32 +14,21 @@ check_stock_id = 53449700212786324
 class Stock(models.Model):
     tmc_id = models.BigIntegerField(primary_key=True)
     namad = models.CharField(max_length=300)
-    avalin = models.FloatField()
-    payani = models.FloatField()
-    akharin_moamele = models.FloatField()
-    tedad_moamelat = models.FloatField()
-    hajm_moamelat = models.FloatField()
-    arzesh_moamelat = models.FloatField()
-    baze_rooz_kam = models.FloatField()
-    baze_rooz_ziad = models.FloatField()
-    eps = models.FloatField()
-    mojaz_ziad = models.FloatField()
-    mojaz_kam = models.FloatField()
 
     def __str__(self):
-        return self.namad + " " + str(self.tmc_id)
+        return f"{self.namad} {self.tmc_id}"
 
-
+# <TICKER>,<DTYYYYMMDD>,<FIRST>,<HIGH>,<LOW>,<CLOSE>,<VALUE>,<VOL>,<OPENINT>,<PER>,<OPEN>,<LAST>
 class StockLog(models.Model):
     stock = models.ForeignKey(Stock, on_delete=models.CASCADE)
     date = models.DateField()
-    first = models.FloatField()
-    high = models.FloatField()
+    first = models.FloatField() # avalin
+    high = models.FloatField()  
     low = models.FloatField()
-    close = models.FloatField()
-    value = models.FloatField()
-    volume = models.FloatField()
-    last = models.FloatField()
+    close = models.FloatField() # payani
+    value = models.FloatField() # arzesh
+    volume = models.FloatField() # hajm
+    last = models.FloatField() # akharin
 
     def __str__(self):
         return str(self.stock) + " " + str(self.date)

@@ -12,6 +12,10 @@ from . import tasks
 from rest_framework import viewsets
 from . import tmc_utils
 
+import logging
+
+logger = logging.getLogger('django')
+
 # from indicator.serializers import StockSerializer
 
 # class StockViewSet(viewsets.ModelViewSet):
@@ -55,6 +59,7 @@ class IndicatorForm(forms.Form):
 
 def home(request):
     update_stocks_today()
+    update_stock_history(Stock.objects.get(tmc_id=778253364357513))
     form = IndicatorForm(auto_id=False)
     # tasks.update_records.delay()
     template = loader.get_template("indicator/home.html")
@@ -203,49 +208,30 @@ def update_stocks_today():
     stock_list = tmc_utils.get_today_stock_list()
     clean_stock_list = tmc_utils.clean_stock_list(stock_list)
     for stock in clean_stock_list:
-        _, created = Stock.objects.update_or_create(**stock)
-        print("created?: " + created)
-    print(len(Stock.objects.all()))
+        # logger.info(stock)
+        obj, created = Stock.objects.update_or_create(defaults={**stock}, tmc_id=stock['tmc_id'])
+        logger.info(str(obj.tmc_id) + " created? " + str(created))
+    logger.info("num of stocks: " + str(len(Stock.objects.all())))
 
 
-# def update_stock_history(stock):
-#     get_data_url = 'http://tsetmc.ir/tsev2/data/Export-txt.aspx?t=i&a=1&b=0&i='
-#     get_data_url2 = 'http://members.tsetmc.com/tsev2/data/InstTradeHistory.aspx?i='
-#     get_data_url3 = '&Top=999999&A=0'
-#     check = False
-#     r = requests.get(get_data_url+stock.getID())
-#     while r.status_code == 500:
-#         if check:
-#             # r = requests.get(get_data_url2+stock.getID()+get_data_url3)
-#             r = requests.get(get_data_url+stock.getID())
-#             check = False
-#         else:
-#             r = requests.get(get_data_url+stock.getID())
-#             check = True
-#     # print(r.text)
-#     rr = r.text.split('\r\n')
-#     # print(rr)
-#     if len(rr) > 0:
-#         del rr[-1]
-#     if len(rr) > 0:
-#         del rr[0]
-#     # print(rr)
-#     for j in rr:
-#         seprated = j.split(',')
-#         # print(seprated[1])
-#         try:
-#             found = Record.objects.get(stock=stock,date=seprated[1])
-#             print('found'+str(found))
-#             # for attr, value in found.__dict__.items():
-#             #     print(attr, value)
-#             break     # CHECKOUT THIS SHOULD BE COMMENT OR NOT!!
-#         except ObjectDoesNotExist:
-#             new_entry = Record.create(stock, *seprated)
-#             new_entry.save()
-#             print('new'+str(new_entry))
-#     # print(len(Record.objects.all()))
-#     # headers = ['Ticker','date','first','high','low','close','value','vol','openint','per','open','last']
-#     # print([field.name for field in Record._meta.get_fields()])
+def update_stock_history(stock):
+    stock_logs = tmc_utils.get_stock_logs(stock)
+    for j in stock_logs:
+        seprated = j.split(',')
+        # print(seprated[1])
+        try:
+            found = Record.objects.get(stock=stock, date=seprated[1])
+            print('found'+str(found))
+            # for attr, value in found.__dict__.items():
+            #     print(attr, value)
+            break     # CHECKOUT THIS SHOULD BE COMMENT OR NOT!!
+        except ObjectDoesNotExist:
+            new_entry = Record.create(stock, *seprated)
+            new_entry.save()
+            print('new'+str(new_entry))
+    # print(len(Record.objects.all()))
+    # headers = ['Ticker','date','first','high','low','close','value','vol','openint','per','open','last']
+    # print([field.name for field in Record._meta.get_fields()])
 
 
 # def update():
