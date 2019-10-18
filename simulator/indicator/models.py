@@ -18,17 +18,18 @@ class Stock(models.Model):
     def __str__(self):
         return f"{self.namad} {self.tmc_id}"
 
+
 # <TICKER>,<DTYYYYMMDD>,<FIRST>,<HIGH>,<LOW>,<CLOSE>,<VALUE>,<VOL>,<OPENINT>,<PER>,<OPEN>,<LAST>
 class StockLog(models.Model):
     stock = models.ForeignKey(Stock, on_delete=models.CASCADE)
     date = models.DateField()
-    first = models.FloatField() # avalin
-    high = models.FloatField()  
+    first = models.FloatField()  # avalin
+    high = models.FloatField()
     low = models.FloatField()
-    close = models.FloatField() # payani
-    value = models.FloatField() # arzesh
-    volume = models.FloatField() # hajm
-    last = models.FloatField() # akharin
+    close = models.FloatField()  # payani
+    value = models.FloatField()  # arzesh
+    volume = models.FloatField()  # hajm
+    last = models.FloatField()  # akharin
 
     def __str__(self):
         return str(self.stock) + " " + str(self.date)
@@ -574,9 +575,12 @@ class TradeLog(models.Model):
 
     def __str__(self):
         return (
-            self.indicator.__str__()
-            + " - "
-            + self.buy_stock_log.__str__()
-            + " - "
-            + str(self.profit)
+            self.indicator.__str__() +
+            " - " +
+            self.buy_stock_log.__str__() +
+            " - " +
+            str(self.profit)
         )
+
+
+# class oscilator

@@ -1,5 +1,6 @@
 import requests
-from indicator.models import Stock
+from datetime import datetime
+from indicator.models import Stock, StockLog
 import logging
 logger = logging.getLogger('django')
 
@@ -8,7 +9,11 @@ def get_today_stock_list():
     get_today_stock_url = (
         "http://www.tsetmc.com/tsev2/data/MarketWatchInit.aspx?h=0&r=0"
     )
-    row_data = requests.get(get_today_stock_url)
+    try:
+        row_data = requests.get(get_today_stock_url)
+    except requests.exceptions.RequestException as e:
+        logger.error(e)
+        return get_today_stock_list()
     stock_list = row_data.text.split("@")[2].split(";")
     logger.info('today stock list fetched')
     return stock_list
@@ -45,11 +50,32 @@ def clean_stock_list(stock_list):
     return clean_stock_list
 
 
+def cast_stock_log(stock_log):
+    casted_stock_log = []
+    date = datetime.strptime(stock_log[0], "%Y%m%d").date()
+    casted_stock_log.append(date)
+    for i in range(1, len(stock_log)):
+        casted_stock_log.append(float(stock_log[i]))
+    return casted_stock_log
+
+
 def clean_stock_logs(stock_logs):
-    if len(stock_logs) > 0:
-        del stock_logs[0]
-    logger.info(stock_logs[1])
-    return stock_logs
+    # logger.info(stock_logs[1])
+    cleaned_stock_logs = []
+    remove_list = [0, 8, 9, 10]
+    stock_log_fields = [field for field in StockLog._meta.get_fields()][4:]
+    # print(stock_log_fields)
+    for str_stock_log in stock_logs:
+        stock_log = str_stock_log.split(',')
+        stock_log = list(filter(None, stock_log))
+        if stock_log:
+            stock_log = remove_redundent_elements(stock_log, remove_list)
+            cleaned_log = cast_stock_log(stock_log)
+            dict_log = {}
+            for i in range(len(stock_log_fields)):
+                dict_log[stock_log_fields[i].name] = cleaned_log[i]
+            cleaned_stock_logs.append(dict_log)
+    return cleaned_stock_logs
 
 
 def get_stock_logs(stock):
@@ -58,9 +84,10 @@ def get_stock_logs(stock):
     get_data_url3 = '&Top=999999&A=0'
     try:
         row_data = requests.get(get_data_url + str(stock.tmc_id))
-    except requests.HTTPError:
-        return get_stock_history(stock)
+    except requests.exceptions.RequestException as e:
+        logger.error(e)
+        return get_stock_logs(stock)
     logger.info(str(stock) + ' logs fetched')
-    stock_logs = row_data.text.split('\r\n')[1:]
+    stock_logs = row_data.text.split('\r\n')[1:]     # removing header
     stock_logs = clean_stock_logs(stock_logs)
     return stock_logs
